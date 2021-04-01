@@ -4,48 +4,28 @@ import re
 import sys
 
 
-#COLUMN CHEAT SHEET
-global ACOUSTICNESS 
-global ARTISTS 
-global DANCEABILITY 
-global DURATION_MS 
-global ENGERY
-global EXPLICIT
-global ID
-global INSTRUMENTALNESS
-global KEY
-global LIVENESS
-global LOUDNESS
-global MODE
-global NAME
-global POPULARITY
-global RELEASE_DATE
-global SPEECHINESS
-global TEMPO 
-global VALNCE 
-global YEAR
-ACOUSTICNESS = 0
-ARTISTS = 1
-DANCEABILITY = 2
-DURATION_MS = 3
-ENGERY=4
-EXPLICIT=5
-ID=6
-INSTRUMENTALNESS=7
-KEY=8
-LIVENESS=9
-LOUDNESS=10
-MODE=11
-NAME=12
-POPULARITY=13
-RELEASE_DATE=14
-SPEECHINESS=15
-TEMPO =16
-VALNCE =17
-YEAR = 18
 
 
 def main():
+    data_ACOUSTICNESS = 0
+    data_ARTISTS = 1
+    data_DANCEABILITY = 2
+    data_DURATION_MS = 3
+    data_ENGERY=4
+    data_EXPLICIT=5
+    data_ID=6
+    data_INSTRUMENTALNESS=7
+    data_KEY=8
+    data_LIVENESS=9
+    data_LOUDNESS=10
+    data_MODE=11
+    data_NAME=12
+    data_POPULARITY=13
+    data_RELEASE_DATE=14
+    data_SPEECHINESS=15
+    data_TEMPO =16
+    data_VALNCE =17
+    data_YEAR = 18
 
     if  len(sys.argv) < 2 :
         print("Please put the file name as the command line arugment")
@@ -63,8 +43,10 @@ def main():
     musicDB = {}
     baseData = csv.reader(data)
     for row in baseData:
-        print(row[ARTISTS])
+        musicDB[row[data_ID]] = [row[data_NAME], row[data_ARTISTS], row[data_YEAR], row[data_RELEASE_DATE], row[data_ID]]
 
+    for entry in musicDB:
+        print(entry, musicDB[entry])
 
 if __name__ == "__main__":
     main()
