@@ -123,11 +123,13 @@ def main():
     for row in genreWData:
         genreW[row[genreW_ARTISTS]] = [row]
 
-    print(data)
-    print(artist)
-    print(year)
-    print(genre)
-    print(genreW)
+    artistInsertQs = []
+    for k,v in artist.items():
+        artistInsertQs.append("INSERT INTO artist name VALUES " + str(k))
+
+    genreInsertQs = []
+    for k,v in genre.items():
+        genreInsertQs.append("INSERT INTO genre name VALUES " + str(k))
 
 if __name__ == "__main__":
     main()
