@@ -3,7 +3,6 @@
 import os
 from time import sleep
 from datetime import datetime, timedelta
-from tabulate import tabulate
 import random
 import psycopg2
 
@@ -12,8 +11,13 @@ def main():
         usr = "p320_02c"
         pw = "40lmwVV8ftOn"
 
+	global connection
+
+	connection = psycopg2.connect("dbname=" + usr + " user=" + usr + " password=" + pw + " host=reddwarf.cs.rit.edu")
+	print("Connected with: " + connection.dsn)
         start()
-    
+	
+	connection.close()    
     
     
 def start():
@@ -38,8 +42,13 @@ def start():
 
 
 def register_user():
-    
+	cursor = connection.cursor()
 
+	query = "SELECT username FROM user;"
+	cursor.execute(query)
+	usernames = cursor.fetchall()
+	
+	
 
 def show_main_menu():
         """
