@@ -131,5 +131,9 @@ def main():
     for k,v in genre.items():
         genreInsertQs.append("INSERT INTO genre name VALUES " + str(k))
 
+    songInsertQd = []
+    for k,v in song.items():
+        songInsertQs.append("INSERT INTO song name VALUES " + str(k))
+
 if __name__ == "__main__":
     main()
