@@ -1,5 +1,11 @@
 #This will be the main file that handles the menu and general functionality
 
+import os
+from time import sleep
+from datetime import datetime, timedelta
+from tabulate import tabulate
+import random
+import psycopg2
 
 
 def main():
@@ -30,19 +36,23 @@ def start():
         else:
             print("Please choose an option...")
 
+
+def register_user():
+    
+
+
 def show_main_menu():
     """
     Displays the main menu.
     :return: None
     """
-    print(' -- -- -- -- MAIN MENU -- -- -- -- ')
     print(' 0. Exit')
     print(' 1. Register User')
     print(' 2. User Menu')
     print(' 3. Browse Tools')
     print(' 4. List Users')
     print(' 5. Analytics')
-    print(' -- -- -- -- -- -- -- -- -- -- ')
+    print('\n')
 
 
 if __name__ == "__main__":
