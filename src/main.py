@@ -286,6 +286,273 @@ def song_search():
 		print "Sorry but there were no records that matched your search"
 
 	cursor.close()
+
+def artist_search():
+	print("What kind of search would you like?")
+	print(" 0. Exact (Song = search)")
+	print(" 1. Close (Song inclused search)")
+	
+	while True:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0 or choice == 1:
+                        break
+                else:
+                    print("Please choose an option...")
+
+	search = raw_input("Enter your search parameter: ").strip()
+	
+
+	if choice:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" LIKE %s
+		ORDER BY "Song"."name";
+		'''
+		search = "%" + search + "%"	
+	else:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" = %s
+		ORDER BY "Song"."name";
+		'''
+	cursor = connection.cursor()
+	cursor.execute(sql, (search,))
+	result = cursor.fetchall()
+	
+	
+	if result != []:
+		for entry in result:
+			print "Song: " + entry[0]
+			print "Album: " + entry[1]
+			print "Artist: " + entry[2]
+			print "Genre: " + entry[3]
+			print "Length: " + str(entry[4]) + " Seconds"
+			print "Listen Count: " + str(entry[5]) + " Play(s)"
+			print '\n'	
+	else:
+		print "Sorry but there were no records that matched your search"
+
+	cursor.close()
+	
+	
+	def song_search():
+	print("What kind of search would you like?")
+	print(" 0. Exact (Song = search)")
+	print(" 1. Close (Song inclused search)")
+	
+	while True:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0 or choice == 1:
+                        break
+                else:
+                    print("Please choose an option...")
+
+	search = raw_input("Enter your search parameter: ").strip()
+	
+
+	if choice:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" LIKE %s
+		ORDER BY "Song"."name";
+		'''
+		search = "%" + search + "%"	
+	else:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" = %s
+		ORDER BY "Song"."name";
+		'''
+	cursor = connection.cursor()
+	cursor.execute(sql, (search,))
+	result = cursor.fetchall()
+	
+	
+	if result != []:
+		for entry in result:
+			print "Song: " + entry[0]
+			print "Album: " + entry[1]
+			print "Artist: " + entry[2]
+			print "Genre: " + entry[3]
+			print "Length: " + str(entry[4]) + " Seconds"
+			print "Listen Count: " + str(entry[5]) + " Play(s)"
+			print '\n'	
+	else:
+		print "Sorry but there were no records that matched your search"
+
+	cursor.close()
+	
+def album_search():
+	print("What kind of search would you like?")
+	print(" 0. Exact (Song = search)")
+	print(" 1. Close (Song inclused search)")
+	
+	while True:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0 or choice == 1:
+                        break
+                else:
+                    print("Please choose an option...")
+
+	search = raw_input("Enter your search parameter: ").strip()
+	
+
+	if choice:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" LIKE %s
+		ORDER BY "Song"."name";
+		'''
+		search = "%" + search + "%"	
+	else:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" = %s
+		ORDER BY "Song"."name";
+		'''
+	cursor = connection.cursor()
+	cursor.execute(sql, (search,))
+	result = cursor.fetchall()
+	
+	
+	if result != []:
+		for entry in result:
+			print "Song: " + entry[0]
+			print "Album: " + entry[1]
+			print "Artist: " + entry[2]
+			print "Genre: " + entry[3]
+			print "Length: " + str(entry[4]) + " Seconds"
+			print "Listen Count: " + str(entry[5]) + " Play(s)"
+			print '\n'	
+	else:
+		print "Sorry but there were no records that matched your search"
+
+	cursor.close()
+	
+
+def genre_search():
+	print("What kind of search would you like?")
+	print(" 0. Exact (Song = search)")
+	print(" 1. Close (Song inclused search)")
+	
+	while True:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0 or choice == 1:
+                        break
+                else:
+                    print("Please choose an option...")
+
+	search = raw_input("Enter your search parameter: ").strip()
+	
+
+	if choice:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" LIKE %s
+		ORDER BY "Song"."name";
+		'''
+		search = "%" + search + "%"	
+	else:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" = %s
+		ORDER BY "Song"."name";
+		'''
+	cursor = connection.cursor()
+	cursor.execute(sql, (search,))
+	result = cursor.fetchall()
+	
+	
+	if result != []:
+		for entry in result:
+			print "Song: " + entry[0]
+			print "Album: " + entry[1]
+			print "Artist: " + entry[2]
+			print "Genre: " + entry[3]
+			print "Length: " + str(entry[4]) + " Seconds"
+			print "Listen Count: " + str(entry[5]) + " Play(s)"
+			print '\n'	
+	else:
+		print "Sorry but there were no records that matched your search"
+
+	cursor.close()
+
 def list_users():
 	#This function should inquire the user to see if there is a specific user they are looking for
 	#	Otherwise it will display every user
