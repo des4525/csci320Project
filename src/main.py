@@ -251,7 +251,7 @@ def song_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Song"."name" LIKE %s
+		WHERE LOWER("Song"."name") LIKE LOWER(%s)
 		ORDER BY "Song"."name";
 		'''
 		search = "%" + search + "%"	
@@ -265,7 +265,7 @@ def song_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Song"."name" = %s
+		WHERE LOWER("Song"."name") = LOWER(%s)
 		ORDER BY "Song"."name";
 		'''
 	cursor = connection.cursor()
@@ -317,7 +317,7 @@ def artist_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Artist"."name" LIKE %s
+		WHERE LOWER("Artist"."name") LIKE LOWER(%s)
 		ORDER BY "Artist"."name";
 		'''
 		search = "%" + search + "%"	
@@ -331,7 +331,7 @@ def artist_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Artist"."name" = %s
+		WHERE LOWER("Artist"."name") = LOWER(%s)
 		ORDER BY "Artist"."name";
 		'''
 	cursor = connection.cursor()
@@ -385,7 +385,7 @@ def album_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Album"."name" LIKE %s
+		WHERE LOWER("Album"."name") LIKE LOWER(%s)
 		ORDER BY "Album"."name";
 		'''
 		search = "%" + search + "%"	
@@ -399,7 +399,7 @@ def album_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Album"."name" = %s
+		WHERE LOWER("Album"."name") = LOWER(%s)
 		ORDER BY "Album"."name";
 		'''
 	cursor = connection.cursor()
@@ -452,7 +452,7 @@ def genre_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Genre"."name" LIKE %s
+		WHERE LOWER("Genre"."name") LIKE LOWER(%s)
 		ORDER BY "Genre"."name";
 		'''
 		search = "%" + search + "%"	
@@ -466,7 +466,7 @@ def genre_search():
 		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE "Genre"."name" = %s
+		WHERE LOWER("Genre"."name") = LOWER(%s)
 		ORDER BY "Genre"."name";
 		'''
 	cursor = connection.cursor()
