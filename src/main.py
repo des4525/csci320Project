@@ -70,7 +70,6 @@ def register_user():
 			print("Please enter an actual username (Must contain characters)!")
 			continue
 		for name in usernames:
-			print(name[0])
 			if name[0] == usr:
 				print("That name is already taken, please try again!")
 				isUsernameValid = False
@@ -108,7 +107,6 @@ def register_user():
 			isEmailValid = False
 			continue
 		for email in emails:
-			print(email[0])
 			if userEmail == email[0]:
 				isEmailValid = False
 				print("That email is already taken, be sure you don't already have an account!")
