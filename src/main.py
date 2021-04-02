@@ -28,8 +28,13 @@ def start():
         while True:
                 show_main_menu()
 		#TODO put in try catch 
-                choice = int(input("Enter option #: "))
-                if choice == 0:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0:
                         print("Thanks for using our tool.")
                         exit(0)
                 elif choice == 1:
