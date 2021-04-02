@@ -3,6 +3,7 @@
 #	This will be the main file that handles the menu and general functionality
 #
 #	Author: Duncan Small
+
 import os
 from time import sleep
 from datetime import datetime, timedelta
@@ -148,8 +149,28 @@ def register_user():
 
 def user_menu():
 	show_user_menu()
-	
 
+	while True:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0:
+                        break;
+                elif choice == 1:
+                        add_song()
+                elif choice == 2:
+                        edit_song()
+                elif choice == 3:
+                        show_friends()
+                elif choice == 4:
+                        view_playlists()
+                elif choice == 5:
+                        edit_playlists()
+                else:
+                    print("Please choose an option...")
 
 def show_user_menu():
 	print(' 0. Go back')
@@ -158,19 +179,109 @@ def show_user_menu():
 	print(' 3. View your Friends')
 	print(' 4. View your Playlists')
 	print(' 5. Edit your Playlists')		
+	print('\n')
 	
+def search_menu():
+	print('How would you like to browse the music?')
+	print(' 0. Go back')
+	print(' 1. Song')
+	print(' 2. Artist')
+	print(' 3. Album')
+	print(' 4. Genre')
+	print('\n')
+
 
 def browse_music():
 	#The user must be able to search for a song via the song, artist, album, or genre
 
+	while True:
+		search_menu()
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0:
+			break
+		elif choice == 1:
+                        song_search()
+                elif choice == 2:
+                        artist_search()
+                elif choice == 3:
+                        album_search()
+                elif choice == 4:
+                        genre_search()
+                else:
+                    print("Please choose an option...")
+
+	
+
+
+def song_search():
+	print("What kind of search would you like?")
+	print(" 0. Exact (Song = search)")
+	print(" 1. Close (Song inclused search)")
+	
+	while True:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0 or choice == 1:
+                        break
+                else:
+                    print("Please choose an option...")
+
+	search = raw_input("Enter your search parameter: ").strip()
+	
+
+	if choice:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" LIKE %s
+		ORDER BY "Song"."name";
+		'''
+	else:
+		sql = ''' 
+		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name"
+		FROM (((((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+		WHERE "Song"."name" = %s
+		ORDER BY "Song"."name";
+		'''
+	
+	cursor = connection.cursor()
+	cursor.execute(sql, (search,))
+	result = cursor.fetchall()
+	print "Song: " + result[0][0]
+	print "Album: " + result[0][1]
+	print "Artist: " + result[0][2]
+	print "Genre: " + result[0][3]
+	print '\n'	
 
 def list_users():
 	#This function should inquire the user to see if there is a specific user they are looking for
 	#	Otherwise it will display every user
-
+	pass
 	
 def analytics():
 	#Don't know if we need this yet, but this should give certain analytics 	
+	pass
 
 def show_main_menu():
         """
