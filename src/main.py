@@ -27,7 +27,40 @@ def main():
 	
 	connection.close()    
     
+#----------MENUS----------
 
+def show_main_menu():
+        print(' 0. Exit')
+        print(' 1. Register User')
+        print(' 2. User Menu')
+        print(' 3. Search Music')
+        print(' 4. List Users')
+        print('\n')
+		
+def show_user_menu():
+	print(' 0. Go back')
+	print(' 1. Play whole Playlist')
+	print(' 2. Play Song')
+	print(' 3. Friends Menu')
+	print(' 4. Playlist Menu')		
+	print('\n')
+	
+def search_menu():
+	print('How would you like to search the music?')
+	print(' 0. Go back')
+	print(' 1. Song')
+	print(' 2. Artist')
+	print(' 3. Album')
+	print(' 4. Genre')
+	print('\n')
+
+def friend_menu():
+	print(' 0. Go back')
+	print(' 1. View Friends')
+	print(' 2. Find Friend')
+	print(' 3. View Followers')		
+	print('\n')
+	
 def login():
 	print ("Do you have an account with our application?")
 	print " 0. No I need to register"
@@ -111,7 +144,31 @@ def start():
                 else:
                     print("Please choose an option...")
 
+def user_menu():
+	show_user_menu()
 
+	while True:
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0:
+                        break;
+                elif choice == 1:
+                        play_playlist()
+                elif choice == 2:
+                        play_song()
+                elif choice == 3:
+                        friend_menu()
+                elif choice == 4:
+                        playlist_menu()
+                else:
+                    print("Please choose an option...")
+
+
+	
 def register_user():
 	'''
 	This function asks the user for their Username, Password, Firstname, Lastname,
@@ -207,48 +264,6 @@ def register_user():
 	login()
 	cursor.close()
 
-def user_menu():
-	show_user_menu()
-
-	while True:
-		try:
-                	choice = int(input("Enter option #: "))
-                except ValueError:
-			print("Please only enter numbers")
-			choice = -1
-			continue
-		if choice == 0:
-                        break;
-                elif choice == 1:
-                        add_song()
-                elif choice == 2:
-                        play_song()
-                elif choice == 3:
-                        show_friends()
-                elif choice == 4:
-                        view_playlists()
-                elif choice == 5:
-                        edit_playlists()
-                else:
-                    print("Please choose an option...")
-
-def show_user_menu():
-	print(' 0. Go back')
-	print(' 1. Add Song')
-	print(' 2. Play Song')
-	print(' 3. View your Friends')
-	print(' 4. View your Playlists')
-	print(' 5. Edit your Playlists')		
-	print('\n')
-	
-def search_menu():
-	print('How would you like to browse the music?')
-	print(' 0. Go back')
-	print(' 1. Song')
-	print(' 2. Artist')
-	print(' 3. Album')
-	print(' 4. Genre')
-	print('\n')
 
 
 def browse_music():
@@ -570,27 +585,6 @@ def genre_search():
 		print "Sorry but there were no records that matched your search"
 
 	cursor.close()
-
-def list_users():
-	#This function should inquire the user to see if there is a specific user they are looking for
-	#	Otherwise it will display every user
-	pass
-	
-def analytics():
-	#Don't know if we need this yet, but this should give certain analytics 	
-	pass
-
-def show_main_menu():
-        """
-        Displays the main menu.
-        :return: None
-        """
-        print(' 0. Exit')
-        print(' 1. Register User')
-        print(' 2. User Menu')
-        print(' 3. Browse Music')
-        print(' 4. List Users')
-        print('\n')
 
 
 if __name__ == "__main__":
