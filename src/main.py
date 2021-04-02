@@ -37,7 +37,7 @@ def start():
                 elif choice == 2:
                         user_menu()
                 elif choice == 3:
-                        browse_tools()
+                        browse_music()
                 elif choice == 4:
                         list_users()
                 elif choice == 5:
@@ -141,6 +141,32 @@ def register_user():
 	
 	cursor.close()
 
+def user_menu():
+	show_user_menu()
+	
+
+
+def show_user_menu():
+	print(' 0. Go back')
+	print(' 1. Add Song')
+	print(' 2. Edit Song')
+	print(' 3. View your Friends')
+	print(' 4. View your Playlists')
+	print(' 5. Edit your Playlists')		
+	
+
+def browse_music():
+	#The user must be able to search for a song via the song, artist, album, or genre
+
+
+def list_users():
+	#This function should inquire the user to see if there is a specific user they are looking for
+	#	Otherwise it will display every user
+
+	
+def analytics():
+	#Don't know if we need this yet, but this should give certain analytics 	
+
 def show_main_menu():
         """
         Displays the main menu.
@@ -149,9 +175,8 @@ def show_main_menu():
         print(' 0. Exit')
         print(' 1. Register User')
         print(' 2. User Menu')
-        print(' 3. Browse Tools')
+        print(' 3. Browse Music')
         print(' 4. List Users')
-        print(' 5. Analytics')
         print('\n')
 
 
