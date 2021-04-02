@@ -162,7 +162,7 @@ def user_menu():
                 elif choice == 1:
                         add_song()
                 elif choice == 2:
-                        edit_song()
+                        play_song()
                 elif choice == 3:
                         show_friends()
                 elif choice == 4:
@@ -175,7 +175,7 @@ def user_menu():
 def show_user_menu():
 	print(' 0. Go back')
 	print(' 1. Add Song')
-	print(' 2. Edit Song')
+	print(' 2. Play Song')
 	print(' 3. View your Friends')
 	print(' 4. View your Playlists')
 	print(' 5. Edit your Playlists')		
@@ -217,6 +217,9 @@ def browse_music():
 
 	
 
+
+def play_song():
+	pass
 
 def song_search():
 	print("What kind of search would you like?")
