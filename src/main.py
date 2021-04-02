@@ -47,6 +47,11 @@ def start():
 
 
 def register_user():
+	'''
+	This function asks the user for their Username, Password, Firstname, Lastname,
+		and Email to create their user profile.
+
+	'''
 	cursor = connection.cursor()
 
 	queryUsername = 'SELECT "username" FROM "User";'
@@ -72,6 +77,13 @@ def register_user():
 				break
 		
 	
+
+	password = ""
+	#TODO make password more secure
+	while len(password) == 0:
+		password = str(raw_input("Enter your password: ")).strip()
+
+
 	firstName = ""
 	lastName = ""
 	
@@ -105,9 +117,13 @@ def register_user():
 	
 	now = datetime.now()
 	creation_time = now.strftime("%Y/%m/%d")
-	registerQuery = 'INSERT INTO "User" ("email", "username", "fname", "lname", "cdate", "ladate") VALUES (%s, %s, %s, %s, %s, %s);'
+	registerQuery = '''
+	INSERT INTO "User"
+ 	("email", "username", "fname", "lname", "cdate", "ladate", "password") 
+	VALUES (%s, %s, %s, %s, %s, %s, %s);
+	'''
 	
-	cursor.execute(registerQuery, (userEmail, usr, firstName, lastName, creation_time, creation_time))
+	cursor.execute(registerQuery, (userEmail, usr, firstName, lastName, creation_time, creation_time, password))
 	connection.commit()
 	check = 'SELECT "username" FROM "User" where "username"=%s;' 
 	cursor.execute(check, (usr,))
