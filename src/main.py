@@ -20,15 +20,75 @@ def main():
 	connection = psycopg2.connect("dbname=" + usr+ " user=" + usr + " password=" + pw + " host=reddwarf.cs.rit.edu")
 
 	print("Connected with: " + connection.dsn)
+
+	login()	
+
 	start()
 	
 	connection.close()    
     
-    
+
+def login():
+	print ("Do you have an account with our application?")
+	print " 0. No I need to register"
+	print " 1. Yes I need to login"
+	
+	choice = -1
+	while choice == -1:
+		try:
+			choice = int(input("Enter option #: "))
+		except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			
+	if choice == 0:
+		register_user()
+	else:
+		usr = ""
+		password = ""
+		while  len(usr) == 0 or len(password) == 0:
+			usr = raw_input("Enter your username: ").strip()
+			password = raw_input("Enter your password: ").strip()
+		sql = '''
+		SELECT "User"."username", "User"."password", "User"."email", "User"."fname", "User"."lname"
+		FROM "User";
+		'''
+		global currentEmail
+		global currentUsername
+	
+		cursor = connection.cursor()
+		cursor.execute(sql)
+		result = cursor.fetchall()
+		loginSuccess = False
+
+		if result != []:
+			for entry in result:
+				if entry[0] == usr and entry[1] == password:
+					print "Welcome " + entry[3] + " " + entry[4]
+					loginSuccess = True
+					currentEmail = entry[2]
+					currentUsername = entry[0]
+					break
+			if not loginSuccess:
+				print("We couldn't find your account, please restart the program and try again.")
+		else:
+			print("Ther were no accounts retrieved, please register")
+		
+		if loginSuccess:
+			sql = '''
+			UPDATE "User"
+			SET "ladate" = %s
+			WHERE "email" = %s;
+			'''
+			now = datetime.now()
+			ladate = now.strftime("%Y/%m/%d")
+			cursor.execute(sql, (ladate, currentEmail))
+		else:
+			exit(-1)
+			
 def start():
         while True:
                 show_main_menu()
-		#TODO put in try catch 
 		try:
                 	choice = int(input("Enter option #: "))
                 except ValueError:
@@ -144,7 +204,7 @@ def register_user():
 	else:
 		print("THERE HAS BEEN A GRAVE ERROR PLEASE CHECK THE TABLES FOR INCONSISTENCY")
 		exit(-1)
-	
+	login()
 	cursor.close()
 
 def user_menu():
