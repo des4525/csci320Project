@@ -479,7 +479,7 @@ def search_music():
 	#The user must be able to search for a song via the song, artist, album, or genre
 
 	while True:
-		search_menu()
+		show_search_menu()
 		try:
                 	choice = int(input("Enter option #: "))
                 except ValueError:
