@@ -58,6 +58,7 @@ def login():
 	
 		cursor = connection.cursor()
 		cursor.execute(sql)
+		connection.commit()
 		result = cursor.fetchall()
 		loginSuccess = False
 
@@ -83,6 +84,7 @@ def login():
 			now = datetime.now()
 			ladate = now.strftime("%Y/%m/%d")
 			cursor.execute(sql, (ladate, currentEmail))
+			connection.commit()
 		else:
 			exit(-1)
 			
@@ -279,7 +281,6 @@ def browse_music():
 
 
 def play_song():
-    def play_song():
         song_id = raw_input("Please type the song id: ")
 
         get_song_sql = '''
