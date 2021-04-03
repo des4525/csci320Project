@@ -31,36 +31,46 @@ def main():
 
 def show_main_menu():
         print(' 0. Exit')
-        print(' 1. Register User')
-        print(' 2. User Menu')
-        print(' 3. Search Music')
-        print(' 4. List Users')
+        print(' 1. Register User') # works
+        print(' 2. Play Menu')
+        print(' 3. Search Music') # works
+	print(' 4. Friends Menu')
+	print(' 5. Playlist Menu')
         print('\n')
 		
-def show_user_menu():
+def show_play_menu():
 	print(' 0. Go back')
-	print(' 1. Play whole Playlist')
-	print(' 2. Play Song')
-	print(' 3. Friends Menu')
-	print(' 4. Playlist Menu')		
+	print(' 1. Play Whole Playlist')
+	print(' 2. Play Song')		
 	print('\n')
 	
-def search_menu():
+def show_search_menu():
 	print('How would you like to search the music?')
-	print(' 0. Go back')
+	print(' 0. Go Back')
 	print(' 1. Song')
 	print(' 2. Artist')
 	print(' 3. Album')
 	print(' 4. Genre')
 	print('\n')
 
-def friend_menu():
-	print(' 0. Go back')
+def show_friend_menu():
+	print(' 0. Go Back')
 	print(' 1. View Friends')
 	print(' 2. Find Friend')
 	print(' 3. View Followers')		
 	print('\n')
 	
+def show_playlist_menu():
+	print(' 0. Go back')
+	print(' 1. View My Playlists')
+	print(' 2. Edit Playlist Name')
+	print(' 3. Add To Playlist')
+	print(' 4. Remove From Playlist')
+	print(' 5. Delete Playlist')
+	print(' 6. Create Playlist')
+	print('\n')
+		
+
 def login():
 	print ("Do you have an account with our application?")
 	print " 0. No I need to register"
@@ -136,20 +146,20 @@ def start():
                 elif choice == 1:
                         register_user()
                 elif choice == 2:
-                        user_menu()
+                        play_menu()
                 elif choice == 3:
-                        browse_music()
+                        search_music()
                 elif choice == 4:
-                        list_users()
+                        friend_menu()
                 elif choice == 5:
-                        analytics()
+                        playlist_menu()
                 else:
                     print("Please choose an option...")
 
-def user_menu():
-	show_user_menu()
+def play_menu():
 
 	while True:
+		show_play_menu()
 		try:
                 	choice = int(input("Enter option #: "))
                 except ValueError:
@@ -162,15 +172,47 @@ def user_menu():
                         play_playlist()
                 elif choice == 2:
                         play_song()
-                elif choice == 3:
-                        friend_menu()
-                elif choice == 4:
-                        playlist_menu()
                 else:
                     print("Please choose an option...")
 
-
+def playlist_menu():
+	while True:
+                show_playlist_menu()
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0:
+                        print("Thanks for using our tool.")
+                        exit(0)
+                elif choice == 1:
+                        view_playlists()
+                elif choice == 2:
+                        edit_playlist_name()
+                elif choice == 3:
+                        add_to_playlist()
+                elif choice == 4:
+                        remove_from_playlist()
+                elif choice == 5:
+                        delete_playlist()
+		elif choice == 6:
+			create_playlist()
+                else:
+                    print("Please choose an option...")
+def view_playlists():
 	
+def edit_playlist_name():
+	
+def add_to_playlist():
+	
+def remove_from_playlist():
+	
+def delete_playlist():
+
+def create_playlist():	
+
 def register_user():
 	'''
 	This function asks the user for their Username, Password, Firstname, Lastname,
@@ -268,7 +310,7 @@ def register_user():
 
 
 
-def browse_music():
+def search_music():
 	#The user must be able to search for a song via the song, artist, album, or genre
 
 	while True:
@@ -296,29 +338,47 @@ def browse_music():
 
 
 def play_song():
-        song_id = raw_input("Please type the song id: ")
+   cursor = connection.cursor()
+   song_name = raw_input("Please type the song name: ")
+   get_song_sql = '''
+   SELECT "Song"."name", "Artist"."aname", "Song"."songid"
+   FROM (((((("Song"
+   INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+   INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+   INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+   INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
+   INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
+   INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
+   WHERE "Song"."name" = %s
+   ORDER BY "Song"."name";
+   '''
+   cursor.execute(get_song_sql, (song_name,))
+   result = cursor.fetchall()
+   if not result:
+       print("Sorry, there's no song in the database with that name.\n")
+       return
+   elif len(result) == 1:
+       song = result[0]
+   else:
+       print("There are multiple songs with that name. Which would you like to listen to?")
+       i = 0
+       for entry in result:
+            print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
+       song = result[raw_input("(enter the number of the song you want: )")]
+   print("Playing "+song[0]+" by "+song[1])
+   add_to_history_sql = '''
+   INSERT INTO "PlayHistory" (email, songid, listen_date)
+   VALUES (%s, %s, %s);
+   '''
+   cursor.execute(add_to_history_sql, (currentEmail, song[2], datetime.now().strftime("%Y/%m/%d"),))
+   connection.commit()
+   update_listens_sql = '''
+   UPDATE "Song" SET listens = listens + 1
+   WHERE songid = %s;
+   '''
+   cursor.execute(update_listens_sql, (song[2],))
 
-        get_song_sql = '''
-	    SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name"
-	    FROM (((((("Song"
-	    INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
-	    INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
-	    INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-	    INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
-	    INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
-	    INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-	    WHERE "Song"."songid" = %s
-	    ORDER BY "Song"."name";
-	    '''
-        cursor = connection.cursor()
-        cursor.execute(get_song_sql, (song_id,))
-        result = cursor.fetchall()
-        if result:
-            song = result[0]
-            print("Playing " + song[0] + " by " + song[1] + "\n")
 
-        else:
-            print("Sorry, there's no song in the database with that id.\n")
 
 def song_search():
 	print("What kind of search would you like?")
@@ -342,12 +402,12 @@ def song_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Song"."name") LIKE LOWER(%s)
@@ -356,12 +416,12 @@ def song_search():
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Song"."name") = LOWER(%s)
@@ -408,30 +468,30 @@ def artist_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE LOWER("Artist"."name") LIKE LOWER(%s)
-		ORDER BY "Artist"."name";
+		WHERE LOWER("Artist"."aname") LIKE LOWER(%s)
+		ORDER BY "Artist"."aname";
 		'''
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."aname", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE LOWER("Artist"."name") = LOWER(%s)
-		ORDER BY "Artist"."name";
+		WHERE LOWER("Artist"."aname") = LOWER(%s)
+		ORDER BY "Artist"."aname";
 		'''
 	cursor = connection.cursor()
 	cursor.execute(sql, (search,))
@@ -476,12 +536,12 @@ def album_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Album"."name") LIKE LOWER(%s)
@@ -490,12 +550,12 @@ def album_search():
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Album"."name") = LOWER(%s)
@@ -543,12 +603,12 @@ def genre_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Genre"."name") LIKE LOWER(%s)
@@ -557,12 +617,12 @@ def genre_search():
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Genre"."name") = LOWER(%s)
