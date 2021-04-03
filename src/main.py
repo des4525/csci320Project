@@ -61,6 +61,16 @@ def friend_menu():
 	print(' 3. View Followers')		
 	print('\n')
 	
+def playlist_menu():
+	print(' 0. Go back')
+	print(' 1. View My Playlists')
+	print(' 2. Edit Playlist Name')
+	print(' 3. Add To Playlist')
+	print(' 4. Remove From Playlist')
+	print(' 5. Delete Playlist')		
+	print('\n')
+		
+
 def login():
 	print ("Do you have an account with our application?")
 	print " 0. No I need to register"
