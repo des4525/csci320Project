@@ -217,9 +217,6 @@ def view_playlists():
 		print("Playlist: " + entry[0])
 		print("Created by: " + entry[1])
 
-	
-			cursor.execute(sqlDelete, (result[0][1],))
-			connection.commit()
 def edit_playlist_name():
 	playlistName = ""
 	while len(playlistName) == 0:
@@ -315,7 +312,7 @@ def add_to_playlist():
 
 	
 def remove_from_playlist():
-	
+	pass	
 	
 def delete_playlist():
 	playlistName = ""
