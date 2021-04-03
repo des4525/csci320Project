@@ -31,14 +31,15 @@ def insert_song(row):
 
     cursor = connection.cursor()
 
-    cursor.execute(song_insertion, (song_id, song_name, date_obj, duration))
-    connection.commit()
-
-    print type(artists)
+    try:
+        cursor.execute(song_insertion, (song_id, song_name, date_obj, duration))
+        connection.commit()
+    except:
+        connection.rollback()
 
     if isinstance(artists, str):
 
-        print artists
+        artists = artists[2:-2]
 
         artist_insertion = '''
                         INSERT INTO "Artist"
@@ -47,12 +48,10 @@ def insert_song(row):
                         '''
 
         try:
-            print "got here"
-            cursor.execute(artist_insertion, artists)
+            cursor.execute(artist_insertion, (artists,))
             connection.commit()
-            print "got here"
-        except:
-            pass
+        except :
+            connection.rollback()
 
         artist_release = '''
                 INSERT INTO "ArtistReleases"
@@ -60,13 +59,16 @@ def insert_song(row):
                 VALUES (%s, %s);
                 '''
 
-        cursor.execute(artist_release, (artists, song_id))
-        connection.commit()
+        try:
+            cursor.execute(artist_release, (artists, song_id,))
+            connection.commit()
+        except:
+            connection.rollback()
 
     else:
         for artist in artists:
 
-            print artist
+            artist = artist[2:-2]
 
             artist_insertion = '''
                     INSERT INTO "Artist"
@@ -78,7 +80,7 @@ def insert_song(row):
                 cursor.execute(artist_insertion, artist)
                 connection.commit()
             except:
-                pass
+                connection.rollback()
 
             artist_release = '''
             INSERT INTO "ArtistReleases"
@@ -86,10 +88,12 @@ def insert_song(row):
             VALUES (%s, %s);
             '''
 
-            cursor.execute(artist_release, (artist, song_id))
-            connection.commit()
+            try:
+                cursor.execute(artist_release, (artist, song_id))
+                connection.commit()
+            except:
+                connection.rollback()
 
-    connection.commit()
     cursor.close()
 
 
