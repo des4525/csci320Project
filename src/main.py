@@ -147,9 +147,9 @@ def start():
                     print("Please choose an option...")
 
 def user_menu():
-	show_user_menu()
 
 	while True:
+		show_user_menu()
 		try:
                 	choice = int(input("Enter option #: "))
                 except ValueError:
@@ -329,7 +329,7 @@ def play_song():
    VALUES (%s, %s, %s);
    '''
    cursor.execute(add_to_history_sql, (currentEmail, song[2], datetime.now().strftime("%Y/%m/%d"),))
-   cursor.commit()
+   connection.commit()
    update_listens_sql = '''
    UPDATE "Song" SET listens = listens + 1
    WHERE songid = %s;
