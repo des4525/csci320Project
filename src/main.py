@@ -299,12 +299,12 @@ def play_song():
    cursor = connection.cursor()
    song_name = raw_input("Please type the song name: ")
    get_song_sql = '''
-   SELECT "Song"."name", "Artist"."name", "Song"."songid"
+   SELECT "Song"."name", "Artist"."aname", "Song"."songid"
    FROM (((((("Song"
    INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
    INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
    INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-   INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+   INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
    INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
    INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
    WHERE "Song"."name" = %s
@@ -360,12 +360,12 @@ def song_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Song"."name") LIKE LOWER(%s)
@@ -374,12 +374,12 @@ def song_search():
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Song"."name") = LOWER(%s)
@@ -426,30 +426,30 @@ def artist_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE LOWER("Artist"."name") LIKE LOWER(%s)
-		ORDER BY "Artist"."name";
+		WHERE LOWER("Artist"."aname") LIKE LOWER(%s)
+		ORDER BY "Artist"."aname";
 		'''
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."aname", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-		WHERE LOWER("Artist"."name") = LOWER(%s)
-		ORDER BY "Artist"."name";
+		WHERE LOWER("Artist"."aname") = LOWER(%s)
+		ORDER BY "Artist"."aname";
 		'''
 	cursor = connection.cursor()
 	cursor.execute(sql, (search,))
@@ -494,12 +494,12 @@ def album_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Album"."name") LIKE LOWER(%s)
@@ -508,12 +508,12 @@ def album_search():
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Album"."name") = LOWER(%s)
@@ -561,12 +561,12 @@ def genre_search():
 
 	if choice:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Genre"."name") LIKE LOWER(%s)
@@ -575,12 +575,12 @@ def genre_search():
 		search = "%" + search + "%"	
 	else:
 		sql = ''' 
-		SELECT "Song"."name", "Album"."name", "Artist"."name", "Genre"."name", "Song"."length", "Song"."listens"
+		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
 		FROM (((((("Song"
 		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
 		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
 		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."name" = "ArtistReleases"."aname")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 		INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
 		INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
 		WHERE LOWER("Genre"."name") = LOWER(%s)
