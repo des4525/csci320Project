@@ -201,17 +201,185 @@ def playlist_menu():
 			create_playlist()
                 else:
                     print("Please choose an option...")
+
 def view_playlists():
+	sql = '''
+	SELECT "playlistname", "email"
+	FROM "Playlist"
+	WHERE "email" = %s;
+	'''
+	cursor = connection.cursor()
+	cursor.execute(sql, (currentEmail,))
+	connection.commit()
 	
+	result = cursor.fetchall()
+	for entry in result:
+		print("Playlist: " + entry[0])
+		print("Created by: " + entry[1])
+
+	
+			cursor.execute(sqlDelete, (result[0][1],))
+			connection.commit()
 def edit_playlist_name():
+	playlistName = ""
+	while len(playlistName) == 0:
+		playlistName = raw_input("Which playlist would you like to alter?").strip()
 	
+	
+	newPlaylistName = ""
+	while len(newPlaylistName) == 0:
+		newPlaylistName = raw_input("What would you like the new name to be?").strip()
+
+	sql = '''
+	UPDATE "Playlist"
+	SET "playlistname" = %s
+	WHERE "playlistname" = %s AND "email" = %s;
+	'''
+	
+	cursor = connection.cursor()
+	cursor.execute(sql, (newPlaylistName, playlistName, currentEmail))
+	connection.commit()
+	
+	print("All done!")
+
 def add_to_playlist():
+	playlistName = ""
+	while len(playlistName) == 0:
+		playlistName = raw_input("Which playlist would you like to add a song to?").strip()
+
+	songName = ""
+	while len(songName) == 0:
+		songName = raw_input("Which song would you like to add?").strip()
+	
+	artistName = ""	
+	while len(artistName) == 0:
+		artistName = raw_input("Who is the artist who released that song?").strip()
+	
+	sql = '''
+	SELECT "Song"."name", "Artist"."aname", "Song"."songid", "Song"."length" 
+		FROM (((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
+		WHERE LOWER("Song"."name") LIKE LOWER(%s) AND LOWER("Artist"."aname") LIKE LOWER(%s)
+		ORDER BY "Song"."name";
+	'''
+	
+	cursor = connection.cursor()
+	cursor.execute(sql, (songName, artistName))
+	connection.commit()
+	result = cursor.fetchall()
+	
+	if not result:
+		print("Sorry, there's no song in the database with that name.\n")
+		return
+	elif len(result) == 1:
+		song = result[0]
+	else:
+		print("There are multiple songs with that name. Which would you like to add?")
+ 		i = 0
+		for entry in result:
+			print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
+		song = result[raw_input("Enter the number of the song you want: ")]
+	
+	sqlGetPlaytist = '''
+	SELECT "playlistid", "numsongs", "duration"
+	FROM "Playlist"
+	WHERE "playlistname" = %s AND "email" = %s;
+	'''
+	cursor.execute(sqlGetPlaylist, (playlistName, currentEmail))
+	connection.commit()
+	playlists = cursor.fetchall()
+	if playlists != []:
+		curPlaylist = playlists[0]
+	else:
+		return
+	
+	sqlAddPlaylist = '''
+	INSERT INTO "PlaylistContains" (playlistid, songid, song_index)
+	VALUES (%s, %s, %d);
+	'''
+	cursor.execute(sqlAddPlaylist, (curPlaylist[0], song[2], curPlaylist[1]))
+	connection.commit()
+	
+	sqlUpdatePlaylist = '''
+	UPDATE "Playlist"
+	SET "numsongs" = "numsongs" + 1, "duration" = "duration" + %d;
+	WHERE "playlistid" = %s;
+	'''
+	cursor.execute(sqlUpdatePlaylist, (curPlaylist[2], curPlaylist[0]))
+	connection.commit()
+	
+	print("Your song has been added.")
+
 	
 def remove_from_playlist():
 	
+	
 def delete_playlist():
+	playlistName = ""
+	while len(playlistName) == 0:
+		playlistName = raw_input("Which playlist would you like to delete?").strip()
+	
+	sqlSearch = '''
+
+	SELECT "playlistname", "playlistid", "numsongs" 
+	FROM "Playlist"
+	WHERE "playlistid" = %s AND "email" = %s AND "playlistname" = %s;
+	'''
+	#TODO fix playlistid
+	playlistid = hash( currentEmail)
+
+	cursor = connection.cursor()
+	cursor.execute(sqlSearch, (playlistid, currentEmail, playlistName))
+	connection.commit()
+	
+	result = cursor.fetchall()
+	
+	if result != []:
+		print("WARNING!")
+		print("Are you sure you want to delete " + playlistName + "?")
+		answer = -1
+		while answer !=  -1:
+			answer = int(raw_input("Enter 1 for yes and 0 for no: "))
+		
+		if answer:
+			sqlDelete = '''
+			DELETE FROM "Playlist" 
+			WHERE "playlistid" = %s;
+			'''
+			cursor.execute(sqlDelete, (result[0][1],))
+			connection.commit()
+			sqlDelete2 = '''
+			DELETE FROM "PlaylistContains"
+			WHERE "playlistid" = %s;
+			'''
+			cursor.execute(sqlDelete, (result[0][1],))
+			connection.commit()
+			
+		else:
+			print("Play list has NOT been deleted")
 
 def create_playlist():	
+	playlistName = ""
+	while len(playlistName) == 0:
+		playlistName = raw_input("What would you like to name your new playlist?").strip()
+	
+	sql = '''
+	INSERT INTO "Playlist"
+	(playlistid, playlistname, numsongs, duration, email)
+	VALUES (%s, %s, %d, %d, %s);
+	'''
+	
+	playlistid = hash(currentEmail + playlistName)
+	
+	
+	cursor = connection.cursor()
+	cursor.execute(sql, (playlistid, playlistName, 0, 0, currentEmail))
+	connection.commit()
+	
+	print("Your playlist " + playlistName + " has been created!")
 
 def register_user():
 	'''
