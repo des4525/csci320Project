@@ -377,6 +377,7 @@ def play_song():
    WHERE songid = %s;
    '''
    cursor.execute(update_listens_sql, (song[2],))
+   cursor.close()
 
 
 
