@@ -31,7 +31,10 @@ def insert_song(row):
 
     cursor = connection.cursor()
 
-    cursor.execute(song_insertion, (song_id, song_name, date_obj, duration))
+    try:
+         cursor.execute(song_insertion, (song_id, song_name, date_obj, duration))
+    except:
+        pass	
     connection.commit()
 
     print type(artists)
@@ -39,7 +42,6 @@ def insert_song(row):
     if isinstance(artists, str):
 
         print artists
-
         artist_insertion = '''
                         INSERT INTO "Artist"
                         ("aname")

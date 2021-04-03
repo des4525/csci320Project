@@ -329,7 +329,7 @@ def play_song():
    VALUES (%s, %s, %s);
    '''
    cursor.execute(add_to_history_sql, (currentEmail, song[2], datetime.now().strftime("%Y/%m/%d"),))
-
+   cursor.commit()
    update_listens_sql = '''
    UPDATE "Song" SET listens = listens + 1
    WHERE songid = %s;
