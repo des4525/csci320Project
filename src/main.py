@@ -31,43 +31,43 @@ def main():
 
 def show_main_menu():
         print(' 0. Exit')
-        print(' 1. Register User')
-        print(' 2. User Menu')
-        print(' 3. Search Music')
-        print(' 4. List Users')
+        print(' 1. Register User') # works
+        print(' 2. Play Menu')
+        print(' 3. Search Music') # works
+	print(' 4. Friends Menu')
+	print(' 5. Playlist Menu')
         print('\n')
 		
-def show_user_menu():
+def show_play_menu():
 	print(' 0. Go back')
-	print(' 1. Play whole Playlist')
-	print(' 2. Play Song')
-	print(' 3. Friends Menu')
-	print(' 4. Playlist Menu')		
+	print(' 1. Play Whole Playlist')
+	print(' 2. Play Song')		
 	print('\n')
 	
-def search_menu():
+def show_search_menu():
 	print('How would you like to search the music?')
-	print(' 0. Go back')
+	print(' 0. Go Back')
 	print(' 1. Song')
 	print(' 2. Artist')
 	print(' 3. Album')
 	print(' 4. Genre')
 	print('\n')
 
-def friend_menu():
-	print(' 0. Go back')
+def show_friend_menu():
+	print(' 0. Go Back')
 	print(' 1. View Friends')
 	print(' 2. Find Friend')
 	print(' 3. View Followers')		
 	print('\n')
 	
-def playlist_menu():
+def show_playlist_menu():
 	print(' 0. Go back')
 	print(' 1. View My Playlists')
 	print(' 2. Edit Playlist Name')
 	print(' 3. Add To Playlist')
 	print(' 4. Remove From Playlist')
-	print(' 5. Delete Playlist')		
+	print(' 5. Delete Playlist')
+	print(' 6. Create Playlist')
 	print('\n')
 		
 
@@ -146,20 +146,20 @@ def start():
                 elif choice == 1:
                         register_user()
                 elif choice == 2:
-                        user_menu()
+                        play_menu()
                 elif choice == 3:
-                        browse_music()
+                        search_music()
                 elif choice == 4:
-                        list_users()
+                        friend_menu()
                 elif choice == 5:
-                        analytics()
+                        playlist_menu()
                 else:
                     print("Please choose an option...")
 
-def user_menu():
+def play_menu():
 
 	while True:
-		show_user_menu()
+		show_play_menu()
 		try:
                 	choice = int(input("Enter option #: "))
                 except ValueError:
@@ -172,15 +172,47 @@ def user_menu():
                         play_playlist()
                 elif choice == 2:
                         play_song()
-                elif choice == 3:
-                        friend_menu()
-                elif choice == 4:
-                        playlist_menu()
                 else:
                     print("Please choose an option...")
 
-
+def playlist_menu():
+	while True:
+                show_playlist_menu()
+		try:
+                	choice = int(input("Enter option #: "))
+                except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0:
+                        print("Thanks for using our tool.")
+                        exit(0)
+                elif choice == 1:
+                        view_playlists()
+                elif choice == 2:
+                        edit_playlist_name()
+                elif choice == 3:
+                        add_to_playlist()
+                elif choice == 4:
+                        remove_from_playlist()
+                elif choice == 5:
+                        delete_playlist()
+		elif choice == 6:
+			create_playlist()
+                else:
+                    print("Please choose an option...")
+def view_playlists():
 	
+def edit_playlist_name():
+	
+def add_to_playlist():
+	
+def remove_from_playlist():
+	
+def delete_playlist():
+
+def create_playlist():	
+
 def register_user():
 	'''
 	This function asks the user for their Username, Password, Firstname, Lastname,
@@ -278,7 +310,7 @@ def register_user():
 
 
 
-def browse_music():
+def search_music():
 	#The user must be able to search for a song via the song, artist, album, or genre
 
 	while True:
