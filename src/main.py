@@ -504,22 +504,20 @@ def search_music():
 
 def play_song():
    cursor = connection.cursor()
-   song_name = raw_input("Please type the song name: ")
+   song_name = raw_input("Please type the song name: ").strip()
    get_song_sql = '''
    SELECT "Song"."name", "Artist"."aname", "Song"."songid"
-   FROM (((((("Song"
+   FROM (((("Song"
    INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
    INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
    INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
    INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
-   INNER JOIN "GenreClassifies" ON "GenreClassifies"."songid" = "Song"."songid")
-   INNER JOIN "Genre" ON "Genre"."name" = "GenreClassifies"."gname")
-   WHERE "Song"."name" = %s
+   WHERE LOWER("Song"."name") = LOWER(%s)
    ORDER BY "Song"."name";
    '''
    cursor.execute(get_song_sql, (song_name,))
    result = cursor.fetchall()
-   if not result:
+   if result == []:
        print("Sorry, there's no song in the database with that name.\n")
        return
    elif len(result) == 1:
@@ -530,6 +528,7 @@ def play_song():
        for entry in result:
             print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
        song = result[raw_input("(enter the number of the song you want: )")]
+   
    print("Playing "+song[0]+" by "+song[1])
    add_to_history_sql = '''
    INSERT INTO "PlayHistory" (email, songid, listen_date)
