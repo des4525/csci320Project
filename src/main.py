@@ -202,6 +202,78 @@ def playlist_menu():
                 else:
                     print("Please choose an option...")
 
+def play_playlist():
+	cursor = connection.cursor()
+	playlist_name = raw_input("Please type the playlist name: ").strip()
+	get_playlist_sql = '''
+	SELECT "Playlist"."playlistid", "Playlist"."playlistname", "Playlist"."numsongs", "Playlist"."duration", "Playlist"."email"
+	FROM "Playlist"	
+	WHERE LOWER("Playlist"."playlistname") = LOWER(%s)
+	ORDER BY "Playlist"."playlistname";
+	'''
+	cursor.execute(get_playlist_sql, (playlist_name,))
+	result = cursor.fetchall()
+	if result == []:
+		print("Sorry, there's no playlist in the database with that name.\n")
+		return
+	elif len(result) == 1:
+		playlist = result[0]
+	else:
+		print("There are multiple playlists with that name. Which would you like to listen to?")
+		i = 1
+		for entry in result:
+			print(str(i) + ".      Name: " + entry[1] + ", Owner: " + entry[4])
+			i = i + 1
+		print("")
+		playlist = result[int(raw_input("enter the number of the song you want: ")) - 1]
+
+	print("Playing " + playlist[1] + " by " + playlist[4] + "; Number of songs: " + str(playlist[2])+ ", Duration: " + str(playlist[3]))
+
+	get_songs_sql = '''
+	SELECT "PlaylistContains"."songid", "PlaylistContains"."song_index"
+	FROM "PlaylistContains"	
+	WHERE "PlaylistContains"."playlistid" = %s
+	ORDER BY "PlaylistContains"."song_index";
+	'''
+	cursor.execute(get_songs_sql, (playlist[0],))
+	result = cursor.fetchall()
+
+	for entry in result:
+		song_id = entry[0]
+		get_song_sql = '''
+		SELECT "Song"."name", "Artist"."aname"
+		FROM (((("Song"
+		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
+		WHERE "Song"."songid" = %s
+		'''
+		cursor.execute(get_song_sql, (song_id,))
+		result = cursor.fetchall()
+		if not result:
+			print("Error: no result found for the song_id found in the playlist")
+			cursor.close()
+			return
+
+		song = result[0]
+		print(str(entry[1]) + ".     " + "Playing " + song[0] + " by " + song[1])
+
+		add_to_history_sql = '''
+		INSERT INTO "PlayHistory" (email, songid, listen_date)
+		VALUES (%s, %s, %s);
+		'''
+		cursor.execute(add_to_history_sql, (currentEmail, song_id, datetime.now().strftime("%Y/%m/%d"),))
+		connection.commit()
+
+		update_listens_sql = '''
+		UPDATE "Song" SET listens = listens + 1
+		WHERE songid = %s;
+		'''
+		cursor.execute(update_listens_sql, (song_id,))
+	print("")
+	cursor.close()
+
 def view_playlists():
 	sql = '''
 	SELECT "playlistname", "email"
@@ -503,46 +575,46 @@ def search_music():
 
 
 def play_song():
-   cursor = connection.cursor()
-   song_name = raw_input("Please type the song name: ").strip()
-   get_song_sql = '''
-   SELECT "Song"."name", "Artist"."aname", "Song"."songid"
-   FROM (((("Song"
-   INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
-   INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
-   INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-   INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
-   WHERE LOWER("Song"."name") = LOWER(%s)
-   ORDER BY "Song"."name";
-   '''
-   cursor.execute(get_song_sql, (song_name,))
-   result = cursor.fetchall()
-   if result == []:
-       print("Sorry, there's no song in the database with that name.\n")
-       return
-   elif len(result) == 1:
-       song = result[0]
-   else:
-       print("There are multiple songs with that name. Which would you like to listen to?")
-       i = 0
-       for entry in result:
-            print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
-       song = result[raw_input("(enter the number of the song you want: )")]
-   
-   print("Playing "+song[0]+" by "+song[1])
-   add_to_history_sql = '''
-   INSERT INTO "PlayHistory" (email, songid, listen_date)
-   VALUES (%s, %s, %s);
-   '''
-   cursor.execute(add_to_history_sql, (currentEmail, song[2], datetime.now().strftime("%Y/%m/%d"),))
-   connection.commit()
-   update_listens_sql = '''
-   UPDATE "Song" SET listens = listens + 1
-   WHERE songid = %s;
-   '''
-   cursor.execute(update_listens_sql, (song[2],))
-   cursor.close()
+	cursor = connection.cursor()
+	song_name = raw_input("Please type the song name: ").strip()
+	get_song_sql = '''
+	SELECT "Song"."name", "Artist"."aname", "Song"."songid"
+	FROM (((("Song"
+	INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
+	INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
+	INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+	INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
+	WHERE LOWER("Song"."name") = LOWER(%s)
+	ORDER BY "Song"."name";
+	'''
+	cursor.execute(get_song_sql, (song_name,))
+	result = cursor.fetchall()
+	if result == []:
+		print("Sorry, there's no song in the database with that name.\n")
+		return
+	elif len(result) == 1:
+		song = result[0]
+	else:
+		print("There are multiple songs with that name. Which would you like to listen to?")
+		i = 1
+		for entry in result:
+			print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
+			i = i + 1
+		song = result[raw_input("(enter the number of the song you want: )") - 1]
 
+	print("Playing "+song[0]+" by "+song[1])
+	add_to_history_sql = '''
+	INSERT INTO "PlayHistory" (email, songid, listen_date)
+	VALUES (%s, %s, %s);
+	'''
+	cursor.execute(add_to_history_sql, (currentEmail, song[2], datetime.now().strftime("%Y/%m/%d"),))
+	connection.commit()
+	update_listens_sql = '''
+	UPDATE "Song" SET listens = listens + 1
+	WHERE songid = %s;
+	'''
+	cursor.execute(update_listens_sql, (song[2],))
+	cursor.close()
 
 
 def song_search():
