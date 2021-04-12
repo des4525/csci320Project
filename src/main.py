@@ -352,7 +352,7 @@ def add_to_playlist():
 			print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
 		song = result[raw_input("Enter the number of the song you want: ")]
 	
-	sqlGetPlaytist = '''
+	sqlGetPlaylist = '''
 	SELECT "playlistid", "numsongs", "duration"
 	FROM "Playlist"
 	WHERE "playlistname" = %s AND "email" = %s;
@@ -367,17 +367,17 @@ def add_to_playlist():
 	
 	sqlAddPlaylist = '''
 	INSERT INTO "PlaylistContains" (playlistid, songid, song_index)
-	VALUES (%s, %s, %d);
+	VALUES (%s, %s, %s);
 	'''
 	cursor.execute(sqlAddPlaylist, (curPlaylist[0], song[2], curPlaylist[1]))
 	connection.commit()
 	
 	sqlUpdatePlaylist = '''
 	UPDATE "Playlist"
-	SET "numsongs" = "numsongs" + 1, "duration" = "duration" + %d;
+	SET "numsongs" = "numsongs" + 1, "duration" = %s;
 	WHERE "playlistid" = %s;
 	'''
-	cursor.execute(sqlUpdatePlaylist, (curPlaylist[2], curPlaylist[0]))
+	cursor.execute(sqlUpdatePlaylist, (curPlaylist[2], (song[3] + curPlaylist[0])))
 	connection.commit()
 	
 	print("Your song has been added.")
@@ -438,7 +438,7 @@ def create_playlist():
 	sql = '''
 	INSERT INTO "Playlist"
 	(playlistid, playlistname, numsongs, duration, email)
-	VALUES (%s, %s, %d, %d, %s);
+	VALUES (%s, %s,  %s, %s, %s);
 	'''
 	
 	playlistid = hash(currentEmail + playlistName)
