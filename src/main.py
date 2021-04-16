@@ -34,7 +34,7 @@ def show_main_menu():
         print(' 1. Register User') # works
         print(' 2. Play Menu')
         print(' 3. Search Music') # works
-	print(' 4. Friends Menu')
+	print(' 4. Follow Menu')
 	print(' 5. Playlist Menu')
         print('\n')
 		
@@ -53,11 +53,11 @@ def show_search_menu():
 	print(' 4. Genre')
 	print('\n')
 
-def show_friend_menu():
+def show_follower_menu():
 	print(' 0. Go Back')
-	print(' 1. View Friends')
-	print(' 2. Find Friend')
-	print(' 3. View Followers')		
+	print(' 1. View Who is Following You')
+	print(' 2. View Who You are Following')
+	print(' 3. Find User')
 	print('\n')
 	
 def show_playlist_menu():
@@ -150,7 +150,7 @@ def start():
                 elif choice == 3:
                         search_music()
                 elif choice == 4:
-                        friend_menu()
+                        follower_menu()
                 elif choice == 5:
                         playlist_menu()
                 else:
@@ -572,13 +572,13 @@ def search_music():
                     print("Please choose an option...")
 
 
-def friend_menu():
-	# print(' 0. Go Back')
-	# print(' 1. View Friends')
-	# print(' 2. Find Friend')
-	# print(' 3. View Followers')
+def follower_menu():
+	# 0. Go Back
+	# 1. View Who is Following You
+	# 2. View Who You are Following
+	# 3. Find User
 	while True:
-		show_friend_menu()
+		show_follower_menu()
 		try:
 			choice = int(input("Enter option #: "))
 		except ValueError:
@@ -588,27 +588,29 @@ def friend_menu():
 		if choice == 0:
 			break
 		elif choice == 1:
-			view_friends()
+			view_followers()
 		elif choice == 2:
-			find_friend()
+			view_following()
+		elif choice == 3:
+			find_user()
 		else:
 			print("Please choose an option...")
 
 
-def view_friends():
+def view_followers():
 	cursor = connection.cursor()
 	get_emails_sql = '''
 	SELECT "UserFollows"."followerEmail"
 	FROM "UserFollows"
 	WHERE "UserFollows"."followeeEmail" = %s
-	ORDER BY "UserFollows"."followeeEmail"
+	ORDER BY "UserFollows"."followerEmail"
 	'''
 	cursor.execute(get_emails_sql, (currentEmail,))
 	result = cursor.fetchall()
 	if not result:
-		print("Sorry, you don't have any friends yet.\n")
+		print("Sorry, you don't have any followers yet.\n")
 	else:
-		print("These are your current friends:")
+		print("These are your current followers:")
 		for email in result:
 			email = email[0]
 			get_username_sql = '''
@@ -623,29 +625,67 @@ def view_friends():
 	cursor.close()
 
 
-def find_friend():
+def view_following():
 	cursor = connection.cursor()
-	friend_email = raw_input("Please type the email of your friend: ").strip()
+	get_emails_sql = '''
+	SELECT "UserFollows"."followeeEmail"
+	FROM "UserFollows"
+	WHERE "UserFollows"."followerEmail" = %s
+	ORDER BY "UserFollows"."followeeEmail"
+	'''
+	cursor.execute(get_emails_sql, (currentEmail,))
+	result = cursor.fetchall()
+	if not result:
+		print("Sorry, you aren't following anyone yet.\n")
+	else:
+		print("These are the users you are currently following:")
+		for email in result:
+			email = email[0]
+			get_username_sql = '''
+			SELECT "User"."username"
+			FROM "User"
+			WHERE "User"."email" = %s
+			'''
+			cursor.execute(get_username_sql, (email,))
+			username = cursor.fetchall()[0][0]
+			print("     " + username + "        (" + email + ")")
+		print("\n")
+	cursor.close()
+
+
+def find_user():
+	cursor = connection.cursor()
+	user_email = raw_input("Please type the email of the user: ").strip()
 	get_friend_sql = '''
 	SELECT "User"."username"
 	FROM "User"
 	WHERE "User"."email" = %s
 	'''
-	cursor.execute(get_friend_sql, (friend_email,))
+	cursor.execute(get_friend_sql, (user_email,))
 	result = cursor.fetchall()
 	if not result:
 		print("Sorry, there's no user in the database with that email.\n")
 	else:
-		friend_username = result[0][0]
-		input = raw_input("Add user '" + friend_username + "' as a friend? (y/n): ")
-		if input[0] == "y":
-			add_friend_sql = '''		
-			INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
-			VALUES (%s, %s);
-			'''
-			cursor.execute(add_friend_sql, (currentEmail, friend_email,))
-			connection.commit()
-			print("Friend added!\n")
+		user_username = result[0][0]
+		check_following_sql = '''
+		SELECT *
+		FROM "UserFollows"
+		WHERE "UserFollows"."followerEmail" = %s AND "UserFollows"."followeeEmail" = %s
+		'''
+		cursor.execute(check_following_sql, (currentEmail, user_email,))
+		is_following = cursor.fetchall()
+		if is_following:
+			print("You are already following that user!")
+		else:
+			input = raw_input("Follow user '" + user_username + "'? (y/n): ")
+			if input[0] == "y":
+				add_friend_sql = '''		
+				INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
+				VALUES (%s, %s);
+				'''
+				cursor.execute(add_friend_sql, (currentEmail, user_email,))
+				connection.commit()
+				print("You are now following '" + user_username + "'!\n")
 	cursor.close()
 
 
