@@ -58,6 +58,7 @@ def show_follower_menu():
 	print(' 1. View Who is Following You')
 	print(' 2. View Who You are Following')
 	print(' 3. Find User')
+	print(' 4. Unfollow User')
 	print('\n')
 	
 def show_playlist_menu():
@@ -577,6 +578,7 @@ def follower_menu():
 	# 1. View Who is Following You
 	# 2. View Who You are Following
 	# 3. Find User
+	# 4. Unfollow User
 	while True:
 		show_follower_menu()
 		try:
@@ -593,6 +595,8 @@ def follower_menu():
 			view_following()
 		elif choice == 3:
 			find_user()
+		elif choice == 4:
+			unfollow_user()
 		else:
 			print("Please choose an option...")
 
@@ -679,13 +683,50 @@ def find_user():
 		else:
 			input = raw_input("Follow user '" + user_username + "'? (y/n): ")
 			if input[0] == "y":
-				add_friend_sql = '''		
+				add_following_sql = '''		
 				INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
 				VALUES (%s, %s);
 				'''
-				cursor.execute(add_friend_sql, (currentEmail, user_email,))
+				cursor.execute(add_following_sql, (currentEmail, user_email,))
 				connection.commit()
 				print("You are now following '" + user_username + "'!\n")
+	cursor.close()
+
+
+def unfollow_user():
+	cursor = connection.cursor()
+	user_email = raw_input("Please type the email of the user: ").strip()
+	get_friend_sql = '''
+	SELECT "User"."username"
+	FROM "User"
+	WHERE "User"."email" = %s
+	'''
+	cursor.execute(get_friend_sql, (user_email,))
+	result = cursor.fetchall()
+	if not result:
+		print("Sorry, there's no user in the database with that email.\n")
+	else:
+		user_username = result[0][0]
+		check_following_sql = '''
+		SELECT *
+		FROM "UserFollows"
+		WHERE "UserFollows"."followerEmail" = %s AND "UserFollows"."followeeEmail" = %s
+		'''
+		cursor.execute(check_following_sql, (currentEmail, user_email,))
+		is_following = cursor.fetchall()
+		if not is_following:
+			print("You are not following that user!")
+		else:
+			input = raw_input("Unfollow user '" + user_username + "'? (y/n): ")
+			if input[0] == "y":
+				remove_following_sql = '''		
+				DELETE 
+				FROM "UserFollows"
+				WHERE "UserFollows"."followerEmail" = %s AND "UserFollows"."followeeEmail" = %s
+				'''
+				cursor.execute(remove_following_sql, (currentEmail, user_email,))
+				connection.commit()
+				print("You are no longer following '" + user_username + "'\n")
 	cursor.close()
 
 
