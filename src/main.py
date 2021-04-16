@@ -571,7 +571,56 @@ def search_music():
                 else:
                     print("Please choose an option...")
 
-	
+
+def friend_menu():
+	# print(' 0. Go Back')
+	# print(' 1. View Friends')
+	# print(' 2. Find Friend')
+	# print(' 3. View Followers')
+	while True:
+		show_friend_menu()
+		try:
+			choice = int(input("Enter option #: "))
+		except ValueError:
+			print("Please only enter numbers")
+			choice = -1
+			continue
+		if choice == 0:
+			break
+		elif choice == 1:
+			view_friends()
+		elif choice == 2:
+			play_song()
+		else:
+			print("Please choose an option...")
+
+
+def view_friends():
+	cursor = connection.cursor()
+	get_emails_sql = '''
+	SELECT "UserFollows"."followerEmail"
+	FROM "UserFollows"
+	WHERE "UserFollows"."followeeEmail" = %s
+	ORDER BY "UserFollows"."followeeEmail"
+	'''
+	cursor.execute(get_emails_sql, (currentEmail,))
+	result = cursor.fetchall()
+	if not result:
+		print("Sorry, you don't have any friends yet.\n")
+	else:
+		print("These are your current friends:")
+		for email in result:
+			email = email[0]
+			get_username_sql = '''
+			SELECT "User"."username"
+			FROM "User"
+			WHERE "User"."email" = %s
+			'''
+			cursor.execute(get_username_sql, (email,))
+			username = cursor.fetchall()[0][0]
+			print("     " + username + "        (" + email + ")")
+		print("\n")
+	cursor.close()
 
 
 def play_song():
@@ -589,8 +638,9 @@ def play_song():
 	'''
 	cursor.execute(get_song_sql, (song_name,))
 	result = cursor.fetchall()
-	if result == []:
+	if not result:
 		print("Sorry, there's no song in the database with that name.\n")
+		cursor.close()
 		return
 	elif len(result) == 1:
 		song = result[0]
@@ -600,7 +650,7 @@ def play_song():
 		for entry in result:
 			print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
 			i = i + 1
-		song = result[raw_input("(enter the number of the song you want: )") - 1]
+		song = result[int(raw_input("(enter the number of the song you want: )")) - 1]
 
 	print("Playing "+song[0]+" by "+song[1])
 	add_to_history_sql = '''
