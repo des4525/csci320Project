@@ -590,7 +590,7 @@ def friend_menu():
 		elif choice == 1:
 			view_friends()
 		elif choice == 2:
-			play_song()
+			find_friend()
 		else:
 			print("Please choose an option...")
 
@@ -620,6 +620,32 @@ def view_friends():
 			username = cursor.fetchall()[0][0]
 			print("     " + username + "        (" + email + ")")
 		print("\n")
+	cursor.close()
+
+
+def find_friend():
+	cursor = connection.cursor()
+	friend_email = raw_input("Please type the email of your friend: ").strip()
+	get_friend_sql = '''
+	SELECT "User"."username"
+	FROM "User"
+	WHERE "User"."email" = %s
+	'''
+	cursor.execute(get_friend_sql, (friend_email,))
+	result = cursor.fetchall()
+	if not result:
+		print("Sorry, there's no user in the database with that email.\n")
+	else:
+		friend_username = result[0][0]
+		input = raw_input("Add user '" + friend_username + "' as a friend? (y/n): ")
+		if input[0] == "y":
+			add_friend_sql = '''		
+			INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
+			VALUES (%s, %s);
+			'''
+			cursor.execute(add_friend_sql, (currentEmail, friend_email,))
+			connection.commit()
+			print("Friend added!\n")
 	cursor.close()
 
 
