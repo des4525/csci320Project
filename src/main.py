@@ -34,7 +34,7 @@ def show_main_menu():
         print(' 1. Register User') # works
         print(' 2. Play Menu')
         print(' 3. Search Music') # works
-	print(' 4. Follow Menu')
+	print(' 4. User Menu')
 	print(' 5. Playlist Menu')
         print('\n')
 		
@@ -53,7 +53,7 @@ def show_search_menu():
 	print(' 4. Genre')
 	print('\n')
 
-def show_follower_menu():
+def show_user_menu():
 	print(' 0. Go Back')
 	print(' 1. View Who is Following You')
 	print(' 2. View Who You are Following')
@@ -151,7 +151,7 @@ def start():
                 elif choice == 3:
                         search_music()
                 elif choice == 4:
-                        follower_menu()
+                        user_menu()
                 elif choice == 5:
                         playlist_menu()
                 else:
@@ -625,9 +625,9 @@ def search_music():
                     print("Please choose an option...")
 
 
-def follower_menu():
+def user_menu():
 	while True:
-		show_follower_menu()
+		show_user_menu()
 		try:
 			choice = int(input("Enter option #: "))
 		except ValueError:
@@ -705,19 +705,55 @@ def view_following():
 
 
 def find_user():
+	# also displays user information (i.e. num of
+	# followers, followees, playlists, and top 10 artists
 	cursor = connection.cursor()
 	user_email = raw_input("Please type the email of the user: ").strip()
-	get_friend_sql = '''
+	get_user_sql = '''
 	SELECT "User"."username"
 	FROM "User"
 	WHERE "User"."email" = %s
 	'''
-	cursor.execute(get_friend_sql, (user_email,))
+	cursor.execute(get_user_sql, (user_email,))
 	result = cursor.fetchall()
 	if not result:
 		print("Sorry, there's no user in the database with that email.\n")
 	else:
 		user_username = result[0][0]
+		print("User " + user_username + "'s profile:\n")
+
+		# num of playlists
+		get_playlist_count_sql = '''
+		SELECT COUNT(*)
+		FROM "Playlist"
+		WHERE "Playlist"."email" = %s
+		'''
+		cursor.execute(get_playlist_count_sql, (user_email,))
+		result = cursor.fetchall()
+		print("Number of playlists: " + str(result[0][0]) + "\n")
+
+		# num of followers
+		get_followers_count_sql = '''
+		SELECT COUNT(*)
+		FROM "UserFollows"
+		WHERE "UserFollows"."followeeEmail" = %s
+		'''
+		cursor.execute(get_followers_count_sql, (user_email,))
+		result = cursor.fetchall()
+		print("Number of followers: " + str(result[0][0]) + "\n")
+
+		# num of followees
+		get_followees_count_sql = '''
+		SELECT COUNT(*)
+		FROM "UserFollows"
+		WHERE "UserFollows"."followerEmail" = %s
+		'''
+		cursor.execute(get_followees_count_sql, (user_email,))
+		result = cursor.fetchall()
+		print("Number this user is following: " + str(result[0][0]) + "\n")
+
+		top_ten_artists(user_email)
+
 		check_following_sql = '''
 		SELECT *
 		FROM "UserFollows"
@@ -1089,14 +1125,14 @@ def genre_search():
 	cursor.close()
 
 
-def top_ten_artists():
+def top_ten_artists(email):
 	cursor = connection.cursor()
 	get_friend_sql = '''
 		SELECT "PlayHistory"."songid"
 		FROM "PlayHistory"
 		WHERE "PlayHistory"."email" = %s
 		'''
-	cursor.execute(get_friend_sql, (currentEmail,))
+	cursor.execute(get_friend_sql, (email,))
 	result = cursor.fetchall()
 	if not result:
 		print("Sorry, this user hasn't played any songs yet.\n")
