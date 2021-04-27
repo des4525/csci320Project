@@ -375,7 +375,7 @@ def add_to_playlist():
 	
 	sqlUpdatePlaylist = '''
 	UPDATE "Playlist"
-	SET "numsongs" = "numsongs" + 1, "duration" = %s;
+	SET "numsongs" = "numsongs" + 1, "duration" = %s
 	WHERE "playlistid" = %s;
 	'''
 	cursor.execute(sqlUpdatePlaylist, (curPlaylist[2], (song[3] + curPlaylist[0])))
