@@ -3,7 +3,7 @@
 #	This will be the main file that handles the menu and general functionality
 #
 #	Author: Duncan Small
-
+import operator
 import os
 from time import sleep
 from datetime import datetime, timedelta
@@ -26,7 +26,7 @@ def main():
 	start()
 	
 	connection.close()    
-    
+
 #----------MENUS----------
 
 def show_main_menu():
@@ -626,11 +626,6 @@ def search_music():
 
 
 def follower_menu():
-	# 0. Go Back
-	# 1. View Who is Following You
-	# 2. View Who You are Following
-	# 3. Find User
-	# 4. Unfollow User
 	while True:
 		show_follower_menu()
 		try:
@@ -1091,6 +1086,50 @@ def genre_search():
 	else:
 		print "Sorry but there were no records that matched your search"
 
+	cursor.close()
+
+
+def top_ten_artists():
+	cursor = connection.cursor()
+	get_friend_sql = '''
+		SELECT "PlayHistory"."songid"
+		FROM "PlayHistory"
+		WHERE "PlayHistory"."email" = %s
+		'''
+	cursor.execute(get_friend_sql, (currentEmail,))
+	result = cursor.fetchall()
+	if not result:
+		print("Sorry, this user hasn't played any songs yet.\n")
+	else:
+		songs = dict()
+		for song in result:
+			if song in songs:
+				songs[song] = songs[song] + 1
+			else:
+				songs[song] = 1
+
+		artists = dict()
+		for song in songs:
+			get_artist_sql = '''
+				SELECT "ArtistReleases"."aname"
+				FROM "ArtistReleases"
+				WHERE "ArtistReleases"."songid" = %s
+				'''
+			cursor.execute(get_artist_sql, (song,))
+			result = cursor.fetchall()
+			artist = result[0][0]
+			if artist in artists:
+				artists[artist] = artists[artist] + songs[song]
+			else:
+				artists[artist] = songs[song]
+		sorted_artists = sorted(artists.items(), key=operator.itemgetter(1), reverse=True)
+		print("Top 10 Favorite (Most Played) Artists:")
+		for i in range(0, 10):
+			if i == len(sorted_artists):
+				break
+			print("     " + str(i + 1) + ". " + sorted_artists[i][0] + ", listened to " + str(
+				sorted_artists[i][1]) + " times")
+	print("")
 	cursor.close()
 
 
