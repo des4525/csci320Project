@@ -754,25 +754,28 @@ def find_user():
 
 		top_ten_artists(user_email)
 
-		check_following_sql = '''
-		SELECT *
-		FROM "UserFollows"
-		WHERE "UserFollows"."followerEmail" = %s AND "UserFollows"."followeeEmail" = %s
-		'''
-		cursor.execute(check_following_sql, (currentEmail, user_email,))
-		is_following = cursor.fetchall()
-		if is_following:
-			print("You are already following that user!")
+		if user_email == currentEmail:
+			print("This user is you!\n")
 		else:
-			input = raw_input("Follow user '" + user_username + "'? (y/n): ")
-			if input[0] == "y":
-				add_following_sql = '''		
-				INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
-				VALUES (%s, %s);
-				'''
-				cursor.execute(add_following_sql, (currentEmail, user_email,))
-				connection.commit()
-				print("You are now following '" + user_username + "'!\n")
+			check_following_sql = '''
+			SELECT *
+			FROM "UserFollows"
+			WHERE "UserFollows"."followerEmail" = %s AND "UserFollows"."followeeEmail" = %s
+			'''
+			cursor.execute(check_following_sql, (currentEmail, user_email,))
+			is_following = cursor.fetchall()
+			if is_following:
+				print("You are already following this user!\n")
+			else:
+				input = raw_input("Follow user '" + user_username + "'? (y/n): ")
+				if input[0] == "y":
+					add_following_sql = '''		
+					INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
+					VALUES (%s, %s);
+					'''
+					cursor.execute(add_following_sql, (currentEmail, user_email,))
+					connection.commit()
+					print("You are now following '" + user_username + "'!\n")
 	cursor.close()
 
 
@@ -1147,10 +1150,10 @@ def top_ten_artists(email):
 		artists = dict()
 		for song in songs:
 			get_artist_sql = '''
-				SELECT "ArtistReleases"."aname"
-				FROM "ArtistReleases"
-				WHERE "ArtistReleases"."songid" = %s
-				'''
+			SELECT "ArtistReleases"."aname"
+			FROM "ArtistReleases"
+			WHERE "ArtistReleases"."songid" = %s
+			'''
 			cursor.execute(get_artist_sql, (song,))
 			result = cursor.fetchall()
 			artist = result[0][0]
@@ -1167,6 +1170,58 @@ def top_ten_artists(email):
 				sorted_artists[i][1]) + " times")
 	print("")
 	cursor.close()
+
+
+def top_friends_songs():
+	cursor = connection.cursor()
+	get_followers_songs_sql = '''
+	SELECT "Song"."name", "UserFollows"."followerEmail"
+	FROM (("Song"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	INNER JOIN "UserFollows" ON "UserFollows"."followerEmail" = "PlayHistory"."email")
+	WHERE "UserFollows"."followeeEmail" = %s
+	'''
+	cursor.execute(get_followers_songs_sql, (currentEmail,))
+	raw_followers_songs = cursor.fetchall()
+
+	get_followees_songs_sql = '''
+	SELECT "Song"."name", "UserFollows"."followeeEmail"
+	FROM (("Song"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	INNER JOIN "UserFollows" ON "UserFollows"."followeeEmail" = "PlayHistory"."email")
+	WHERE "UserFollows"."followerEmail" = %s
+	'''
+	cursor.execute(get_followees_songs_sql, (currentEmail,))
+	raw_followees_songs = cursor.fetchall()
+
+	raw_songs = raw_followers_songs[:]
+
+	for raw_followee_song in raw_followees_songs:
+		should_add = True
+		for raw_follower_song in raw_followers_songs:
+			if raw_follower_song[0] == raw_followee_song[0] and raw_follower_song[1] == raw_followee_song[1]:
+				should_add = False
+		if should_add:
+			raw_songs.append(raw_followee_song)
+
+	songs = dict()
+	for raw_song in raw_songs:
+		if raw_song[0] in songs:
+			songs[raw_song[0]] = songs[raw_song[0]] + 1
+		else:
+			songs[raw_song[0]] = 1
+
+	sorted_songs = sorted(songs.items(), key=operator.itemgetter(1), reverse=True)
+	i = 1
+	for song in sorted_songs:
+		if i < 51:
+			print("     " + str(i) + ". " + str(song[0]) + ", played " + str(song[1]) + " times")
+			i = i + 1
+		else:
+			break
+	print("")
+	cursor.close()
+
 
 
 if __name__ == "__main__":
