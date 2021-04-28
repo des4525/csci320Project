@@ -1172,6 +1172,40 @@ def top_ten_artists(email):
 	cursor.close()
 
 
+def top_months_songs():
+	cursor = connection.cursor()
+	earliest_date = datetime.now().replace(day=1).strftime("%Y/%m/%d")
+	latest_date = datetime.now().strftime("%Y/%m/%d")
+	get_months_songs_sql = '''
+	SELECT "Song"."name"
+	FROM ("Song"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	WHERE "PlayHistory"."listen_date" between %s and %s
+	'''
+	cursor.execute(get_months_songs_sql, (earliest_date, latest_date))
+	raw_songs = cursor.fetchall()
+
+	songs = dict()
+	for raw_song in raw_songs:
+		if raw_song[0] in songs:
+			songs[raw_song[0]] = songs[raw_song[0]] + 1
+		else:
+			songs[raw_song[0]] = 1
+
+	sorted_songs = sorted(songs.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 50 songs (most played) of this month:")
+	i = 1
+	for song in sorted_songs:
+		if i < 51:
+			print("     " + str(i) + ". " + str(song[0]) + ", played " + str(song[1]) + " times")
+			i = i + 1
+		else:
+			break
+	print("")
+	cursor.close()
+
+
 def top_friends_songs():
 	cursor = connection.cursor()
 	get_followers_songs_sql = '''
@@ -1212,6 +1246,8 @@ def top_friends_songs():
 			songs[raw_song[0]] = 1
 
 	sorted_songs = sorted(songs.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 50 songs (most played) songs your friends (followers and followees) like:")
 	i = 1
 	for song in sorted_songs:
 		if i < 51:
