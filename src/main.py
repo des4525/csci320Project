@@ -370,7 +370,7 @@ def add_to_playlist():
 	INSERT INTO "PlaylistContains" (playlistid, songid, song_index)
 	VALUES (%s, %s, %s);
 	'''
-	cursor.execute(sqlAddPlaylist, (curPlaylist[0], song[2], curPlaylist[1]))
+	cursor.execute(sqlAddPlaylist, (curPlaylist[0], song[2], str(int(curPlaylist[1]) + 1)))
 	connection.commit()
 	
 	sqlUpdatePlaylist = '''
@@ -378,53 +378,19 @@ def add_to_playlist():
 	SET "numsongs" = "numsongs" + 1, "duration" = %s
 	WHERE "playlistid" = %s;
 	'''
-	cursor.execute(sqlUpdatePlaylist, (curPlaylist[2], (song[3] + curPlaylist[0])))
+	cursor.execute(sqlUpdatePlaylist, (str(int(curPlaylist[1]) + 1),curPlaylist[2], (str(int(song[3]) + int(curPlaylist[0])))))
 	connection.commit()
 	
 	print("Your song has been added.")
 
 	
 def remove_from_playlist():
+	cursor = connection.cursor()
+
 	playlistName = ""
 	while len(playlistName) == 0:
-		playlistName = raw_input("Which playlist would you like to add a song to?").strip()
+		playlistName = raw_input("Which playlist would you like to remove a song from?").strip()
 
-	songName = ""
-	while len(songName) == 0:
-		songName = raw_input("Which song would you like to add?").strip()
-	
-	artistName = ""	
-	while len(artistName) == 0:
-		artistName = raw_input("Who is the artist who released that song?").strip()
-	
-	sql = '''
-	SELECT "Song"."name", "Artist"."aname", "Song"."songid", "Song"."length" 
-		FROM (((("Song"
-		INNER JOIN "AlbumContains" ON "AlbumContains"."songid" = "Song"."songid")
-		INNER JOIN "Album" ON "Album"."albumid" = "AlbumContains"."albumid")
-		INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
-		INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
-		WHERE LOWER("Song"."name") LIKE LOWER(%s) AND LOWER("Artist"."aname") LIKE LOWER(%s)
-		ORDER BY "Song"."name";
-	'''
-	
-	cursor = connection.cursor()
-	cursor.execute(sql, (songName, artistName))
-	connection.commit()
-	result = cursor.fetchall()
-	
-	if not result:
-		print("Sorry, there's no song in the database with that name.\n")
-		return
-	elif len(result) == 1:
-		song = result[0]
-	else:
-		print("There are multiple songs with that name. Which would you like to add?")
- 		i = 0
-		for entry in result:
-			print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
-		song = result[raw_input("Enter the number of the song you want: ")]
-	
 	sqlGetPlaylist = '''
 	SELECT "playlistid", "numsongs", "duration"
 	FROM "Playlist"
@@ -437,6 +403,57 @@ def remove_from_playlist():
 		curPlaylist = playlists[0]
 	else:
 		return
+
+	
+	sqlGetSongs = '''
+	SELECT "Song"."name", "Artist"."aname", "Song"."songid", "Song"."length", "Playlist"."duration"
+	FROM (((( "Playlist" 
+	INNER JOIN "PlaylistContains" ON "Playlist"."playlistid" = "PlaylistContains"."playlistid" )
+	INNER JOIN "Song" ON "PlaylistContains"."songid" = "Song"."songid" )
+	INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+	INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
+	WHERE "Playlist"."playlistid" = %s AND "Playlist"."email" = %s
+	ORDER BY "Song"."name";
+	'''
+	cursor.execute(sqlGetSongs, (curPlaylist[0], currentEmail))
+	connection.commit()
+	songs = cursor.fetchall()
+	if songs != []:
+		i = 1
+		for x in songs:
+			print(i, "{ Song:", x[0], "Artist:", x[1], "}")
+			i += 1
+	else:
+		print("There are no songs in this playlist, Please add soemthing first")
+		return
+	
+	print('\n')
+	
+	songNum = 0
+	while songNum == 0:
+		
+		songNum = int(raw_input("Which song NUMBER would you like to remove?").strip())
+		
+	
+	
+	sqlUpdateSong = '''
+	UPDATE "Playlist"
+	SET "numsongs" = "numsongs" - 1, "duration" = %s
+	WHERE "playlistid" = %s AND "email" = %s;
+	'''
+	cursor.execute(sqlUpdateSong, ((curPlaylist[2] - songs[songNum-1][3]), curPlaylist[0], currentEmail))
+	connection.commit()
+	
+	sqlRemoveSong = '''
+	DELETE FROM "PlaylistContains"
+	WHERE "songid" = %s AND "playlistid" = %s AND "email" = %s;
+	'''
+	cursor.execute(sqlRemoveSong, (songs[songNum-1][2], curPlaylist[0], currentEmail))
+	connection.commit()
+	print(songs[songNum][0], "has been removed from your playlist.")
+	
+	
+	
 		
 	
 def delete_playlist():
@@ -1172,6 +1189,40 @@ def top_ten_artists(email):
 	cursor.close()
 
 
+def top_months_songs():
+	cursor = connection.cursor()
+	earliest_date = datetime.now().replace(day=1).strftime("%Y/%m/%d")
+	latest_date = datetime.now().strftime("%Y/%m/%d")
+	get_months_songs_sql = '''
+	SELECT "Song"."name"
+	FROM ("Song"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	WHERE "PlayHistory"."listen_date" between %s and %s
+	'''
+	cursor.execute(get_months_songs_sql, (earliest_date, latest_date))
+	raw_songs = cursor.fetchall()
+
+	songs = dict()
+	for raw_song in raw_songs:
+		if raw_song[0] in songs:
+			songs[raw_song[0]] = songs[raw_song[0]] + 1
+		else:
+			songs[raw_song[0]] = 1
+
+	sorted_songs = sorted(songs.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 50 songs (most played) of this month:")
+	i = 1
+	for song in sorted_songs:
+		if i < 51:
+			print("     " + str(i) + ". " + str(song[0]) + ", played " + str(song[1]) + " times")
+			i = i + 1
+		else:
+			break
+	print("")
+	cursor.close()
+
+
 def top_friends_songs():
 	cursor = connection.cursor()
 	get_followers_songs_sql = '''
@@ -1212,6 +1263,8 @@ def top_friends_songs():
 			songs[raw_song[0]] = 1
 
 	sorted_songs = sorted(songs.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 50 songs (most played) songs your friends (followers and followees) like:")
 	i = 1
 	for song in sorted_songs:
 		if i < 51:
