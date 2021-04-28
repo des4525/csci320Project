@@ -1273,6 +1273,40 @@ def top_friends_songs():
 	cursor.close()
 
 
+def top_months_genres():
+	cursor = connection.cursor()
+	earliest_date = datetime.now().replace(day=1).strftime("%Y/%m/%d")
+	latest_date = datetime.now().strftime("%Y/%m/%d")
+	get_months_genres_sql = '''
+	SELECT "GenreClassifies"."gname"
+	FROM (("GenreClassifies"
+	INNER JOIN "Song" ON "Song"."songid" = "GenreClassifies"."songid")
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	WHERE "PlayHistory"."listen_date" between %s and %s
+	'''
+	cursor.execute(get_months_genres_sql, (earliest_date, latest_date))
+	raw_genres = cursor.fetchall()
+
+	genres = dict()
+	for raw_genre in raw_genres:
+		if raw_genre[0] in genres:
+			genres[raw_genre[0]] = genres[raw_genre[0]] + 1
+		else:
+			genres[raw_genre[0]] = 1
+
+	sorted_genres = sorted(genres.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 5 genres (most played) of this month:")
+	i = 1
+	for genre in sorted_genres:
+		if i < 6:
+			print("     " + str(i) + ". " + str(genre[0]) + ", played " + str(genre[1]) + " times")
+			i = i + 1
+		else:
+			break
+	print("")
+	cursor.close()
+
 
 if __name__ == "__main__":
         main()
