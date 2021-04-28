@@ -3,7 +3,7 @@
 #	This will be the main file that handles the menu and general functionality
 #
 #	Author: Duncan Small
-
+import operator
 import os
 from time import sleep
 from datetime import datetime, timedelta
@@ -26,7 +26,7 @@ def main():
 	start()
 	
 	connection.close()    
-    
+
 #----------MENUS----------
 
 def show_main_menu():
@@ -34,7 +34,7 @@ def show_main_menu():
         print(' 1. Register User') # works
         print(' 2. Play Menu')
         print(' 3. Search Music') # works
-	print(' 4. Follow Menu')
+	print(' 4. User Menu')
 	print(' 5. Playlist Menu')
         print('\n')
 		
@@ -53,7 +53,7 @@ def show_search_menu():
 	print(' 4. Genre')
 	print('\n')
 
-def show_follower_menu():
+def show_user_menu():
 	print(' 0. Go Back')
 	print(' 1. View Who is Following You')
 	print(' 2. View Who You are Following')
@@ -151,7 +151,7 @@ def start():
                 elif choice == 3:
                         search_music()
                 elif choice == 4:
-                        follower_menu()
+                        user_menu()
                 elif choice == 5:
                         playlist_menu()
                 else:
@@ -375,7 +375,7 @@ def add_to_playlist():
 	
 	sqlUpdatePlaylist = '''
 	UPDATE "Playlist"
-	SET "numsongs" = %s, "duration" = %s
+	SET "numsongs" = "numsongs" + 1, "duration" = %s
 	WHERE "playlistid" = %s;
 	'''
 	cursor.execute(sqlUpdatePlaylist, (str(int(curPlaylist[1]) + 1),curPlaylist[2], (str(int(song[3]) + int(curPlaylist[0])))))
@@ -642,14 +642,9 @@ def search_music():
                     print("Please choose an option...")
 
 
-def follower_menu():
-	# 0. Go Back
-	# 1. View Who is Following You
-	# 2. View Who You are Following
-	# 3. Find User
-	# 4. Unfollow User
+def user_menu():
 	while True:
-		show_follower_menu()
+		show_user_menu()
 		try:
 			choice = int(input("Enter option #: "))
 		except ValueError:
@@ -727,38 +722,77 @@ def view_following():
 
 
 def find_user():
+	# also displays user information (i.e. num of
+	# followers, followees, playlists, and top 10 artists
 	cursor = connection.cursor()
 	user_email = raw_input("Please type the email of the user: ").strip()
-	get_friend_sql = '''
+	get_user_sql = '''
 	SELECT "User"."username"
 	FROM "User"
 	WHERE "User"."email" = %s
 	'''
-	cursor.execute(get_friend_sql, (user_email,))
+	cursor.execute(get_user_sql, (user_email,))
 	result = cursor.fetchall()
 	if not result:
 		print("Sorry, there's no user in the database with that email.\n")
 	else:
 		user_username = result[0][0]
-		check_following_sql = '''
-		SELECT *
-		FROM "UserFollows"
-		WHERE "UserFollows"."followerEmail" = %s AND "UserFollows"."followeeEmail" = %s
+		print("User " + user_username + "'s profile:\n")
+
+		# num of playlists
+		get_playlist_count_sql = '''
+		SELECT COUNT(*)
+		FROM "Playlist"
+		WHERE "Playlist"."email" = %s
 		'''
-		cursor.execute(check_following_sql, (currentEmail, user_email,))
-		is_following = cursor.fetchall()
-		if is_following:
-			print("You are already following that user!")
+		cursor.execute(get_playlist_count_sql, (user_email,))
+		result = cursor.fetchall()
+		print("Number of playlists: " + str(result[0][0]) + "\n")
+
+		# num of followers
+		get_followers_count_sql = '''
+		SELECT COUNT(*)
+		FROM "UserFollows"
+		WHERE "UserFollows"."followeeEmail" = %s
+		'''
+		cursor.execute(get_followers_count_sql, (user_email,))
+		result = cursor.fetchall()
+		print("Number of followers: " + str(result[0][0]) + "\n")
+
+		# num of followees
+		get_followees_count_sql = '''
+		SELECT COUNT(*)
+		FROM "UserFollows"
+		WHERE "UserFollows"."followerEmail" = %s
+		'''
+		cursor.execute(get_followees_count_sql, (user_email,))
+		result = cursor.fetchall()
+		print("Number this user is following: " + str(result[0][0]) + "\n")
+
+		top_ten_artists(user_email)
+
+		if user_email == currentEmail:
+			print("This user is you!\n")
 		else:
-			input = raw_input("Follow user '" + user_username + "'? (y/n): ")
-			if input[0] == "y":
-				add_following_sql = '''		
-				INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
-				VALUES (%s, %s);
-				'''
-				cursor.execute(add_following_sql, (currentEmail, user_email,))
-				connection.commit()
-				print("You are now following '" + user_username + "'!\n")
+			check_following_sql = '''
+			SELECT *
+			FROM "UserFollows"
+			WHERE "UserFollows"."followerEmail" = %s AND "UserFollows"."followeeEmail" = %s
+			'''
+			cursor.execute(check_following_sql, (currentEmail, user_email,))
+			is_following = cursor.fetchall()
+			if is_following:
+				print("You are already following this user!\n")
+			else:
+				input = raw_input("Follow user '" + user_username + "'? (y/n): ")
+				if input[0] == "y":
+					add_following_sql = '''		
+					INSERT INTO "UserFollows" ("followerEmail", "followeeEmail")
+					VALUES (%s, %s);
+					'''
+					cursor.execute(add_following_sql, (currentEmail, user_email,))
+					connection.commit()
+					print("You are now following '" + user_username + "'!\n")
 	cursor.close()
 
 
@@ -1109,6 +1143,138 @@ def genre_search():
 		print "Sorry but there were no records that matched your search"
 
 	cursor.close()
+
+
+def top_ten_artists(email):
+	cursor = connection.cursor()
+	get_friend_sql = '''
+		SELECT "PlayHistory"."songid"
+		FROM "PlayHistory"
+		WHERE "PlayHistory"."email" = %s
+		'''
+	cursor.execute(get_friend_sql, (email,))
+	result = cursor.fetchall()
+	if not result:
+		print("Sorry, this user hasn't played any songs yet.\n")
+	else:
+		songs = dict()
+		for song in result:
+			if song in songs:
+				songs[song] = songs[song] + 1
+			else:
+				songs[song] = 1
+
+		artists = dict()
+		for song in songs:
+			get_artist_sql = '''
+			SELECT "ArtistReleases"."aname"
+			FROM "ArtistReleases"
+			WHERE "ArtistReleases"."songid" = %s
+			'''
+			cursor.execute(get_artist_sql, (song,))
+			result = cursor.fetchall()
+			artist = result[0][0]
+			if artist in artists:
+				artists[artist] = artists[artist] + songs[song]
+			else:
+				artists[artist] = songs[song]
+		sorted_artists = sorted(artists.items(), key=operator.itemgetter(1), reverse=True)
+		print("Top 10 Favorite (Most Played) Artists:")
+		for i in range(0, 10):
+			if i == len(sorted_artists):
+				break
+			print("     " + str(i + 1) + ". " + sorted_artists[i][0] + ", listened to " + str(
+				sorted_artists[i][1]) + " times")
+	print("")
+	cursor.close()
+
+
+def top_months_songs():
+	cursor = connection.cursor()
+	earliest_date = datetime.now().replace(day=1).strftime("%Y/%m/%d")
+	latest_date = datetime.now().strftime("%Y/%m/%d")
+	get_months_songs_sql = '''
+	SELECT "Song"."name"
+	FROM ("Song"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	WHERE "PlayHistory"."listen_date" between %s and %s
+	'''
+	cursor.execute(get_months_songs_sql, (earliest_date, latest_date))
+	raw_songs = cursor.fetchall()
+
+	songs = dict()
+	for raw_song in raw_songs:
+		if raw_song[0] in songs:
+			songs[raw_song[0]] = songs[raw_song[0]] + 1
+		else:
+			songs[raw_song[0]] = 1
+
+	sorted_songs = sorted(songs.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 50 songs (most played) of this month:")
+	i = 1
+	for song in sorted_songs:
+		if i < 51:
+			print("     " + str(i) + ". " + str(song[0]) + ", played " + str(song[1]) + " times")
+			i = i + 1
+		else:
+			break
+	print("")
+	cursor.close()
+
+
+def top_friends_songs():
+	cursor = connection.cursor()
+	get_followers_songs_sql = '''
+	SELECT "Song"."name", "UserFollows"."followerEmail"
+	FROM (("Song"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	INNER JOIN "UserFollows" ON "UserFollows"."followerEmail" = "PlayHistory"."email")
+	WHERE "UserFollows"."followeeEmail" = %s
+	'''
+	cursor.execute(get_followers_songs_sql, (currentEmail,))
+	raw_followers_songs = cursor.fetchall()
+
+	get_followees_songs_sql = '''
+	SELECT "Song"."name", "UserFollows"."followeeEmail"
+	FROM (("Song"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	INNER JOIN "UserFollows" ON "UserFollows"."followeeEmail" = "PlayHistory"."email")
+	WHERE "UserFollows"."followerEmail" = %s
+	'''
+	cursor.execute(get_followees_songs_sql, (currentEmail,))
+	raw_followees_songs = cursor.fetchall()
+
+	raw_songs = raw_followers_songs[:]
+
+	for raw_followee_song in raw_followees_songs:
+		should_add = True
+		for raw_follower_song in raw_followers_songs:
+			if raw_follower_song[0] == raw_followee_song[0] and raw_follower_song[1] == raw_followee_song[1]:
+				should_add = False
+		if should_add:
+			raw_songs.append(raw_followee_song)
+
+	songs = dict()
+	for raw_song in raw_songs:
+		if raw_song[0] in songs:
+			songs[raw_song[0]] = songs[raw_song[0]] + 1
+		else:
+			songs[raw_song[0]] = 1
+
+	sorted_songs = sorted(songs.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 50 songs (most played) songs your friends (followers and followees) like:")
+	i = 1
+	for song in sorted_songs:
+		if i < 51:
+			print("     " + str(i) + ". " + str(song[0]) + ", played " + str(song[1]) + " times")
+			i = i + 1
+		else:
+			break
+	print("")
+	cursor.close()
+
 
 
 if __name__ == "__main__":
