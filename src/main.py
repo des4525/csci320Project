@@ -462,28 +462,23 @@ def delete_playlist():
 		playlistName = raw_input("Which playlist would you like to delete?").strip()
 	
 	sqlSearch = '''
-
 	SELECT "playlistname", "playlistid", "numsongs" 
 	FROM "Playlist"
-	WHERE "playlistid" = %s AND "email" = %s AND "playlistname" = %s;
+	WHERE "playlistname" = %s AND "email" = %s;
 	'''
-	#TODO fix playlistid
-	playlistid = hash( currentEmail)
-
 	cursor = connection.cursor()
-	cursor.execute(sqlSearch, (playlistid, currentEmail, playlistName))
+	cursor.execute(sqlSearch, (playlistName, currentEmail))
 	connection.commit()
 	
 	result = cursor.fetchall()
-	
 	if result != []:
 		print("WARNING!")
 		print("Are you sure you want to delete " + playlistName + "?")
-		answer = -1
-		while answer !=  -1:
-			answer = int(raw_input("Enter 1 for yes and 0 for no: "))
+		answer = ''
+		while len(answer) == 0:
+			answer = (raw_input("Enter 1 for yes and 0 for no: ").strip())
 		
-		if answer:
+		if answer == '1':
 			sqlDelete = '''
 			DELETE FROM "Playlist" 
 			WHERE "playlistid" = %s;
@@ -494,11 +489,13 @@ def delete_playlist():
 			DELETE FROM "PlaylistContains"
 			WHERE "playlistid" = %s;
 			'''
-			cursor.execute(sqlDelete, (result[0][1],))
+			cursor.execute(sqlDelete2, (result[0][1],))
 			connection.commit()
 			
 		else:
 			print("Play list has NOT been deleted")
+	else:
+		print("We could not find your playlist, nothing has been deleted.")
 
 def create_playlist():	
 	playlistName = ""
