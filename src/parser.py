@@ -3,8 +3,11 @@ import os
 import re
 import sys
 from datetime import datetime
+import random
 
 import psycopg2
+
+possible_genres = ['berlin minimal techno', 'japanese vtuber', 'meme rap', 'bubblegrunge', 'canadian contemporary r&b']
 
 
 def insert_song(row):
@@ -50,7 +53,7 @@ def insert_song(row):
         try:
             cursor.execute(artist_insertion, (artists,))
             connection.commit()
-        except :
+        except:
             connection.rollback()
 
         artist_release = '''
@@ -93,6 +96,22 @@ def insert_song(row):
                 connection.commit()
             except:
                 connection.rollback()
+
+    song_genre = random.choice(possible_genres)
+    print(song_genre)
+
+    genre_classifies = '''
+    INSERT INTO "GenreClassifies"
+    ("gname", "songid")
+    VALUES (%s, %s);
+    '''
+
+    try:
+        cursor.execute(genre_classifies, (song_genre, song_id,))
+        connection.commit()
+    except:
+        connection.rollback()
+
 
     cursor.close()
 
