@@ -379,7 +379,7 @@ def add_to_playlist():
 	SET "numsongs" = %s, "duration" = %s
 	WHERE "playlistid" = %s;
 	'''
-	cursor.execute(sqlUpdatePlaylist, (str(int(curPlaylist[1]) + 1), (str(int(song[3]) + int(curPlaylist[0]))), curPlaylist[0] ))
+	cursor.execute(sqlUpdatePlaylist, (str(int(curPlaylist[1]) + 1), (str(int(song[3]) + int(curPlaylist[2]))), curPlaylist[0] ))
 	connection.commit()
 	
 	print("Your song has been added.")
@@ -463,7 +463,7 @@ def remove_from_playlist():
 	DELETE FROM "PlaylistContains"
 	WHERE "playlistid" = %s AND "song_index" = %s;
 	'''
-	cursor.execute(sqlRemoveSong, (curPlaylist[0], index ))
+	cursor.execute(sqlRemoveSong, (curPlaylist[0], index[0] ))
 	connection.commit()
 
 
@@ -474,7 +474,7 @@ def remove_from_playlist():
 	'''
 	
 	for x in range(int(curPlaylist[1])):
-		if x > int(index):
+		if x > int(index[0]):
 			cursor.execute(sqlUpdateSongIndex, (str(x-1), curPlaylist[0], str(x)))	
 	
 
