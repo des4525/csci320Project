@@ -329,15 +329,8 @@ def view_playlists():
 def edit_playlist_name():
 	playlistName = ""
 	while len(playlistName) == 0:
-<<<<<<< HEAD
 		playlistName = raw_input("Which playlist would you like to alter? ").strip()
-	
-	
-=======
-		playlistName = raw_input("Which playlist would you like to alter?").strip()
 
-
->>>>>>> be9c98990858fd8938c02facd649e4e658a29029
 	newPlaylistName = ""
 	while len(newPlaylistName) == 0:
 		newPlaylistName = raw_input("What would you like the new name to be? ").strip()
@@ -361,21 +354,12 @@ def add_to_playlist():
 
 	songName = ""
 	while len(songName) == 0:
-<<<<<<< HEAD
 		songName = raw_input("Which song would you like to add? ").strip()
 	
 	artistName = ""	
 	while len(artistName) == 0:
 		artistName = raw_input("Who is the artist who released that song? ").strip()
 	
-=======
-		songName = raw_input("Which song would you like to add?").strip()
-
-	artistName = ""
-	while len(artistName) == 0:
-		artistName = raw_input("Who is the artist who released that song?").strip()
-
->>>>>>> be9c98990858fd8938c02facd649e4e658a29029
 	sql = '''
 	SELECT "Song"."name", "Artist"."aname", "Song"."songid", "Song"."length" 
 		FROM (((("Song"
@@ -482,18 +466,8 @@ def remove_from_playlist():
 
 	songNum = 0
 	while songNum == 0:
-<<<<<<< HEAD
-		
-		songNum = int(raw_input("Which song NUMBER would you like to remove? ").strip())
-		
-	
-=======
-
-		songNum = int(raw_input("Which song NUMBER would you like to remove?").strip())
-
-
-
->>>>>>> be9c98990858fd8938c02facd649e4e658a29029
+			songNum = int(raw_input("Which song NUMBER would you like to remove? ").strip())
+			
 	sqlUpdateSong = '''
 	UPDATE "Playlist"
 	SET "numsongs" = %s, "duration" = %s
@@ -501,26 +475,8 @@ def remove_from_playlist():
 	'''
 	cursor.execute(sqlUpdateSong, (str(int(curPlaylist[1]) - 1), (curPlaylist[2] - songs[songNum-1][3]), curPlaylist[0], currentEmail))
 	connection.commit()
-<<<<<<< HEAD
-		
+
 	
-=======
-
-	sqlGetPlaylistContainsInfo = '''
-	SELECT "song_index"
-	FROM "PlaylistContains"
-	WHERE "playlistid" = %s AND "songid" = %s;
-	'''
-	cursor.execute(sqlGetPlaylistContainsInfo, (curPlaylist[0], songs[songNum-1][2]))
-	connection.commit()
-	indexResults = cursor.fetchall()
-	if indexResults != []:
-		index = indexResults[0]
-	else:
-		print("Error: Could not get the song index, this shouldn't happen theoretically so please contact someone")
-		return
-
->>>>>>> be9c98990858fd8938c02facd649e4e658a29029
 	sqlRemoveSong = '''
 	DELETE FROM "PlaylistContains"
 	WHERE "playlistid" = %s AND "song_index" = %s;
@@ -536,7 +492,6 @@ def remove_from_playlist():
 	'''
 
 	for x in range(int(curPlaylist[1])):
-<<<<<<< HEAD
 		if x + 1 > int(songNum):
 			cursor.execute(sqlUpdateSongIndex, (str(x), curPlaylist[0], str(x + 1)))	
 	
@@ -547,18 +502,7 @@ def remove_from_playlist():
 	
 		
 	
-=======
-		if x > int(index[0]):
-			cursor.execute(sqlUpdateSongIndex, (str(x-1), curPlaylist[0], str(x)))
 
-
-	print(songs[songNum][0], "has been removed from your playlist.")
-
-
-
-
-
->>>>>>> be9c98990858fd8938c02facd649e4e658a29029
 def delete_playlist():
 	playlistName = ""
 	while len(playlistName) == 0:
