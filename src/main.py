@@ -1144,37 +1144,24 @@ def genre_search():
 
 def top_ten_artists(email):
 	cursor = connection.cursor()
-	get_friend_sql = '''
-		SELECT "PlayHistory"."songid"
-		FROM "PlayHistory"
-		WHERE "PlayHistory"."email" = %s
-		'''
-	cursor.execute(get_friend_sql, (email,))
+	get_artists_sql = '''
+	SELECT "ArtistReleases"."aname"
+	FROM ("ArtistReleases"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "ArtistReleases"."songid")
+	WHERE "PlayHistory"."email" = %s
+	'''
+	cursor.execute(get_artists_sql, (email,))
 	result = cursor.fetchall()
 	if not result:
 		print("Sorry, this user hasn't played any songs yet.\n")
 	else:
-		songs = dict()
-		for song in result:
-			if song in songs:
-				songs[song] = songs[song] + 1
-			else:
-				songs[song] = 1
-
 		artists = dict()
-		for song in songs:
-			get_artist_sql = '''
-			SELECT "ArtistReleases"."aname"
-			FROM "ArtistReleases"
-			WHERE "ArtistReleases"."songid" = %s
-			'''
-			cursor.execute(get_artist_sql, (song,))
-			result = cursor.fetchall()
-			artist = result[0][0]
-			if artist in artists:
-				artists[artist] = artists[artist] + songs[song]
+		for artist in result:
+			if artist[0] in artists:
+				artists[artist[0]] = artists[artist[0]] + 1
 			else:
-				artists[artist] = songs[song]
+				artists[artist[0]] = 1
+
 		sorted_artists = sorted(artists.items(), key=operator.itemgetter(1), reverse=True)
 		print("Top 10 Favorite (Most Played) Artists:")
 		for i in range(0, 10):
