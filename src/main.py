@@ -30,6 +30,7 @@ def main():
 #----------MENUS----------
 
 def show_main_menu():
+	rec_for_you()
         print(' 0. Exit')
         print(' 1. Register User') # works
         print(' 2. Play Menu')
@@ -1171,37 +1172,24 @@ def genre_search():
 
 def top_ten_artists(email):
 	cursor = connection.cursor()
-	get_friend_sql = '''
-		SELECT "PlayHistory"."songid"
-		FROM "PlayHistory"
-		WHERE "PlayHistory"."email" = %s
-		'''
-	cursor.execute(get_friend_sql, (email,))
+	get_artists_sql = '''
+	SELECT "ArtistReleases"."aname"
+	FROM ("ArtistReleases"
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "ArtistReleases"."songid")
+	WHERE "PlayHistory"."email" = %s
+	'''
+	cursor.execute(get_artists_sql, (email,))
 	result = cursor.fetchall()
 	if not result:
 		print("Sorry, this user hasn't played any songs yet.\n")
 	else:
-		songs = dict()
-		for song in result:
-			if song in songs:
-				songs[song] = songs[song] + 1
-			else:
-				songs[song] = 1
-
 		artists = dict()
-		for song in songs:
-			get_artist_sql = '''
-			SELECT "ArtistReleases"."aname"
-			FROM "ArtistReleases"
-			WHERE "ArtistReleases"."songid" = %s
-			'''
-			cursor.execute(get_artist_sql, (song,))
-			result = cursor.fetchall()
-			artist = result[0][0]
-			if artist in artists:
-				artists[artist] = artists[artist] + songs[song]
+		for artist in result:
+			if artist[0] in artists:
+				artists[artist[0]] = artists[artist[0]] + 1
 			else:
-				artists[artist] = songs[song]
+				artists[artist[0]] = 1
+
 		sorted_artists = sorted(artists.items(), key=operator.itemgetter(1), reverse=True)
 		print("Top 10 Favorite (Most Played) Artists:")
 		for i in range(0, 10):
@@ -1299,6 +1287,118 @@ def top_friends_songs():
 	print("")
 	cursor.close()
 
+
+def top_months_genres():
+	cursor = connection.cursor()
+	earliest_date = datetime.now().replace(day=1).strftime("%Y/%m/%d")
+	latest_date = datetime.now().strftime("%Y/%m/%d")
+	get_months_genres_sql = '''
+	SELECT "GenreClassifies"."gname"
+	FROM (("GenreClassifies"
+	INNER JOIN "Song" ON "Song"."songid" = "GenreClassifies"."songid")
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	WHERE "PlayHistory"."listen_date" between %s and %s
+	'''
+	cursor.execute(get_months_genres_sql, (earliest_date, latest_date))
+	raw_genres = cursor.fetchall()
+
+	genres = dict()
+	for raw_genre in raw_genres:
+		if raw_genre[0] in genres:
+			genres[raw_genre[0]] = genres[raw_genre[0]] + 1
+		else:
+			genres[raw_genre[0]] = 1
+
+	sorted_genres = sorted(genres.items(), key=operator.itemgetter(1), reverse=True)
+
+	print("Top 5 genres (most played) of this month:")
+	i = 1
+	for genre in sorted_genres:
+		if i < 6:
+			print("     " + str(i) + ". " + str(genre[0]) + ", played " + str(genre[1]) + " times")
+			i = i + 1
+		else:
+			break
+	print("")
+	cursor.close()
+
+
+def rec_for_you():
+	cursor = connection.cursor()
+	get_played_artists_sql = '''
+	SELECT "ArtistReleases"."aname"
+	FROM (("ArtistReleases"
+	INNER JOIN "Song" ON "Song"."songid" = "ArtistReleases"."songid")
+	INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+	WHERE "PlayHistory"."email" = %s
+	'''
+	cursor.execute(get_played_artists_sql, (currentEmail,))
+	raw_played_artists = cursor.fetchall()
+
+	played_artists = dict()
+	for raw_played_artist in raw_played_artists:
+		if raw_played_artist[0] in played_artists:
+			played_artists[raw_played_artist[0]] = played_artists[raw_played_artist[0]] + 1
+		else:
+			played_artists[raw_played_artist[0]] = 1
+	top_ten_artists = sorted(played_artists.items(), key=operator.itemgetter(1), reverse=True)[0:10]
+
+	get_users_sql = '''
+	SELECT "User"."email"
+	FROM "User"
+	ORDER BY RANDOM ()
+	'''
+	cursor.execute(get_users_sql)
+	raw_users = cursor.fetchall()
+
+	new_artist = ""
+	for raw_user in raw_users:
+		user = raw_user[0]
+		get_artists_sql = '''
+		SELECT "ArtistReleases"."aname"
+		FROM (("ArtistReleases"
+		INNER JOIN "Song" ON "Song"."songid" = "ArtistReleases"."songid")
+		INNER JOIN "PlayHistory" ON "PlayHistory"."songid" = "Song"."songid")
+		WHERE "PlayHistory"."email" = %s
+		'''
+		cursor.execute(get_artists_sql, (user,))
+		played_artists = dict()
+		for raw_played_artist in raw_played_artists:
+			if raw_played_artist[0] in played_artists:
+				played_artists[raw_played_artist[0]] = played_artists[raw_played_artist[0]] + 1
+			else:
+				played_artists[raw_played_artist[0]] = 1
+		top_ten_user_artists = sorted(played_artists.items(), key=operator.itemgetter(1), reverse=True)[0:10]
+		sim_artist_num = 0
+		diff_artist = ""
+		for artist in top_ten_user_artists:
+			artist = artist[0]
+			if artist in top_ten_artists:
+				sim_artist_num = sim_artist_num + 1
+			else:
+				diff_artist = artist
+		if sim_artist_num > 4 and diff_artist != "":
+			new_artist = diff_artist
+			break
+
+	get_songs_sql = '''
+	SELECT "Song"."name"
+	FROM ("Song"
+	INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
+	WHERE "ArtistReleases"."aname" = %s
+	ORDER BY "Song"."listens" desc
+	'''
+	cursor.execute(get_songs_sql, (new_artist,))
+	result = cursor.fetchall()
+
+	if result:
+		i = random.randint(0, 11)
+		song = result[i][0]
+		print("Recommended Song (based off of your listening history and similar users):")
+		print(song + " by " + new_artist + "\n")
+	else:
+		print("Sorry, you haven't listened to enough songs yet for us to recommend anything!\n")
+	cursor.close()
 
 
 if __name__ == "__main__":

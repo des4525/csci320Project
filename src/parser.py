@@ -10,6 +10,117 @@ import psycopg2
 possible_genres = ['berlin minimal techno', 'japanese vtuber', 'meme rap', 'bubblegrunge', 'canadian contemporary r&b']
 
 
+def randomize_listens():
+    songs_query = '''
+    SELECT "songid"
+    FROM "Song";
+    '''
+
+    listens_thing = '''
+    UPDATE "Song"
+    SET "listens" = %s
+    WHERE "songid" = %s;
+    '''
+
+    cursor = connection.cursor()
+    cursor.execute(songs_query)
+    songs = cursor.fetchall()
+
+    for song in songs:
+        listens = random.randint(100, 10000)
+        try:
+            cursor.execute(listens_thing, (listens, song[0]))
+            print("Set song: {} listens to {}.".format(song[0], listens))
+            connection.commit()
+        except Exception as e:
+            print e.message
+            connection.rollback()
+
+    cursor.close()
+
+
+def get_release_date(song_id):
+    date_query = '''
+        SELECT "rdate" 
+        FROM "Song"
+        WHERE "songid" = %s;
+    '''
+
+    cursor = connection.cursor()
+    cursor.execute(date_query, (song_id,))
+    rdate = cursor.fetchall()
+    cursor.close()
+    print rdate
+    return rdate
+
+
+def get_artists():
+    artist_query = '''
+    SELECT "aname" FROM "Artist";
+    '''
+
+    cursor = connection.cursor()
+    cursor.execute(artist_query)
+
+    artists = cursor.fetchall()
+
+    cursor.close()
+
+    return artists
+
+
+def create_albums(artist_name):
+    song_query = '''
+    SELECT "ArtistReleases"."songid"
+    FROM ( "Artist" INNER JOIN "ArtistReleases" ON "Artist"."aname" = "ArtistReleases"."aname")
+    WHERE "Artist"."aname" = %s;
+    '''
+
+    album_contain = '''
+        INSERT INTO "AlbumContains"
+        ("albumid", "songid", track_number)
+        VALUES (%s, %s, %s);
+    '''
+
+    album_insertion = '''
+        INSERT INTO "Album"
+        ("albumid", "rdate", "name")
+        VALUES (%s, %s, %s);
+    '''
+
+    cursor = connection.cursor()
+
+    cursor.execute(song_query, (artist_name,))
+    songs = cursor.fetchmany(10)
+    album_number = 1
+    album_name = "{} album {}".format(artist_name, album_number)
+    album_id = songs[0][0]
+    album_date = get_release_date(album_id)
+    track = 1
+    while songs:
+        for song in songs:
+            try:
+                cursor.execute(album_insertion, (album_id, album_date[0], album_name,))
+                cursor.execute(album_contain, (album_id, song[0], track))
+                connection.commit()
+                print "committed"
+                track = track + 1
+            except Exception as e:
+                connection.rollback()
+                print e.message
+        album_number = album_number + 1
+        track = 1
+        try:
+            songs = cursor.fetchmany(10)
+            album_id = songs[0][0]
+            album_name = "{} album {}".format(artist_name, album_number)
+            album_date = get_release_date(album_id)
+        except:
+            break
+
+    cursor.close()
+
+
 def insert_song(row):
     attributes = []
     for a in row:
@@ -61,16 +172,16 @@ def insert_song(row):
                 ("aname", "songid")
                 VALUES (%s, %s);
                 '''
-
         try:
             cursor.execute(artist_release, (artists, song_id,))
             connection.commit()
         except:
             connection.rollback()
 
+
+
     else:
         for artist in artists:
-
             artist = artist[2:-2]
 
             artist_insertion = '''
@@ -111,7 +222,6 @@ def insert_song(row):
         connection.commit()
     except:
         connection.rollback()
-
 
     cursor.close()
 
@@ -216,13 +326,20 @@ def main():
     genreWCSV = open("Data/data_w_genres.csv")
 
     data = {}
-    baseData = csv.reader(dataCSV)
+    # baseData = csv.reader(dataCSV)
+    #
+    # row = next(baseData)
 
-    row = next(baseData)
+    # for i in range(1000):
+    #     row = next(baseData)
+    #     insert_song(row)
 
-    for i in range(10):
-        row = next(baseData)
-        insert_song(row)
+    # artists = get_artists()
+    # for artist in artists:
+    #     print artist[0]
+    #     create_albums(artist[0])
+
+    randomize_listens()
 
     # for row in baseData:
     #     things = []
