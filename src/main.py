@@ -21,30 +21,37 @@ def main():
 
 	print("Connected with: " + connection.dsn)
 
-	login()	
+	login()
 
 	start()
-	
-	connection.close()    
+
+	connection.close()
 
 #----------MENUS----------
 
 def show_main_menu():
-	rec_for_you()
         print(' 0. Exit')
         print(' 1. Register User') # works
         print(' 2. Play Menu')
         print(' 3. Search Music') # works
 	print(' 4. User Menu')
 	print(' 5. Playlist Menu')
+	print(' 6. Recommended Music')
         print('\n')
-		
+
 def show_play_menu():
 	print(' 0. Go back')
 	print(' 1. Play Whole Playlist')
-	print(' 2. Play Song')		
+	print(' 2. Play Song')
 	print('\n')
-	
+
+def show_recommended_menu():
+    print(' 0. Go back')
+    print(' 1. Top 50 Songs of the Month')
+    print(' 2. Top 50 Songs Among your Friends')
+    print(' 3. Top 5 Genres of the Month')
+    print(' 4. For You: Recommended Song\n')
+
 def show_search_menu():
 	print('How would you like to search the music?')
 	print(' 0. Go Back')
@@ -61,7 +68,7 @@ def show_user_menu():
 	print(' 3. Find User')
 	print(' 4. Unfollow User')
 	print('\n')
-	
+
 def show_playlist_menu():
 	print(' 0. Go back')
 	print(' 1. View My Playlists')
@@ -71,13 +78,13 @@ def show_playlist_menu():
 	print(' 5. Delete Playlist')
 	print(' 6. Create Playlist')
 	print('\n')
-		
+
 
 def login():
 	print ("Do you have an account with our application?")
 	print " 0. No I need to register"
 	print " 1. Yes I need to login"
-	
+
 	choice = -1
 	while choice == -1:
 		try:
@@ -85,7 +92,7 @@ def login():
 		except ValueError:
 			print("Please only enter numbers")
 			choice = -1
-			
+
 	if choice == 0:
 		register_user()
 	else:
@@ -100,7 +107,7 @@ def login():
 		'''
 		global currentEmail
 		global currentUsername
-	
+
 		cursor = connection.cursor()
 		cursor.execute(sql)
 		connection.commit()
@@ -119,7 +126,7 @@ def login():
 				print("We couldn't find your account, please restart the program and try again.")
 		else:
 			print("Ther were no accounts retrieved, please register")
-		
+
 		if loginSuccess:
 			sql = '''
 			UPDATE "User"
@@ -132,7 +139,7 @@ def login():
 			connection.commit()
 		else:
 			exit(-1)
-			
+
 def start():
         while True:
                 show_main_menu()
@@ -155,8 +162,34 @@ def start():
                         user_menu()
                 elif choice == 5:
                         playlist_menu()
+                elif choice == 6:
+                        recommended_menu()
                 else:
                     print("Please choose an option...")
+
+
+def recommended_menu():
+    while True:
+        show_recommended_menu()
+        try:
+            choice = int(input("Enter option #: "))
+        except ValueError:
+            print("Please only enter numbers")
+            choice = -1
+            continue
+        if choice == 0:
+            break
+        elif choice == 1:
+            top_months_songs()
+        elif choice == 2:
+            top_friends_songs()
+        elif choice == 3:
+            top_months_genres()
+        elif choice == 4:
+            rec_for_you()
+        else:
+            print("Please choose an option...")
+
 
 def play_menu():
 
@@ -285,7 +318,7 @@ def view_playlists():
 	cursor = connection.cursor()
 	cursor.execute(sql, (currentEmail,))
 	connection.commit()
-	
+
 	result = cursor.fetchall()
 	for entry in result:
 		print("Playlist: " + entry[0])
@@ -295,8 +328,8 @@ def edit_playlist_name():
 	playlistName = ""
 	while len(playlistName) == 0:
 		playlistName = raw_input("Which playlist would you like to alter?").strip()
-	
-	
+
+
 	newPlaylistName = ""
 	while len(newPlaylistName) == 0:
 		newPlaylistName = raw_input("What would you like the new name to be?").strip()
@@ -306,11 +339,11 @@ def edit_playlist_name():
 	SET "playlistname" = %s
 	WHERE "playlistname" = %s AND "email" = %s;
 	'''
-	
+
 	cursor = connection.cursor()
 	cursor.execute(sql, (newPlaylistName, playlistName, currentEmail))
 	connection.commit()
-	
+
 	print("All done!")
 
 def add_to_playlist():
@@ -321,11 +354,11 @@ def add_to_playlist():
 	songName = ""
 	while len(songName) == 0:
 		songName = raw_input("Which song would you like to add?").strip()
-	
-	artistName = ""	
+
+	artistName = ""
 	while len(artistName) == 0:
 		artistName = raw_input("Who is the artist who released that song?").strip()
-	
+
 	sql = '''
 	SELECT "Song"."name", "Artist"."aname", "Song"."songid", "Song"."length" 
 		FROM (((("Song"
@@ -336,12 +369,12 @@ def add_to_playlist():
 		WHERE LOWER("Song"."name") LIKE LOWER(%s) AND LOWER("Artist"."aname") LIKE LOWER(%s)
 		ORDER BY "Song"."name";
 	'''
-	
+
 	cursor = connection.cursor()
 	cursor.execute(sql, (songName, artistName))
 	connection.commit()
 	result = cursor.fetchall()
-	
+
 	if not result:
 		print("Sorry, there's no song in the database with that name.\n")
 		return
@@ -353,7 +386,7 @@ def add_to_playlist():
 		for entry in result:
 			print(str(i)+".      Song: " + entry[0] + "Artist: "+entry[1])
 		song = result[raw_input("Enter the number of the song you want: ")]
-	
+
 	sqlGetPlaylist = '''
 	SELECT "playlistid", "numsongs", "duration"
 	FROM "Playlist"
@@ -366,14 +399,14 @@ def add_to_playlist():
 		curPlaylist = playlists[0]
 	else:
 		return
-	
+
 	sqlAddPlaylist = '''
 	INSERT INTO "PlaylistContains" (playlistid, songid, song_index)
 	VALUES (%s, %s, %s);
 	'''
 	cursor.execute(sqlAddPlaylist, (curPlaylist[0], song[2], str(int(curPlaylist[1]) + 1)))
 	connection.commit()
-	
+
 	sqlUpdatePlaylist = '''
 	UPDATE "Playlist"
 	SET "numsongs" = %s, "duration" = %s
@@ -381,10 +414,10 @@ def add_to_playlist():
 	'''
 	cursor.execute(sqlUpdatePlaylist, (str(int(curPlaylist[1]) + 1), (str(int(song[3]) + int(curPlaylist[2]))), curPlaylist[0] ))
 	connection.commit()
-	
+
 	print("Your song has been added.")
 
-	
+
 def remove_from_playlist():
 	cursor = connection.cursor()
 
@@ -405,7 +438,7 @@ def remove_from_playlist():
 	else:
 		return
 
-	
+
 	sqlGetSongs = '''
 	SELECT "Song"."name", "Artist"."aname", "Song"."songid", "Song"."length", "Playlist"."duration"
 	FROM (((( "Playlist" 
@@ -427,16 +460,16 @@ def remove_from_playlist():
 	else:
 		print("There are no songs in this playlist, Please add soemthing first")
 		return
-	
+
 	print('\n')
-	
+
 	songNum = 0
 	while songNum == 0:
-		
+
 		songNum = int(raw_input("Which song NUMBER would you like to remove?").strip())
-		
-	
-	
+
+
+
 	sqlUpdateSong = '''
 	UPDATE "Playlist"
 	SET "numsongs" = %s, "duration" = %s
@@ -444,7 +477,7 @@ def remove_from_playlist():
 	'''
 	cursor.execute(sqlUpdateSong, (str(int(curPlaylist[1]) - 1), (curPlaylist[2] - songs[songNum-1][3]), curPlaylist[0], currentEmail))
 	connection.commit()
-		
+
 	sqlGetPlaylistContainsInfo = '''
 	SELECT "song_index"
 	FROM "PlaylistContains"
@@ -458,7 +491,7 @@ def remove_from_playlist():
 	else:
 		print("Error: Could not get the song index, this shouldn't happen theoretically so please contact someone")
 		return
-	
+
 	sqlRemoveSong = '''
 	DELETE FROM "PlaylistContains"
 	WHERE "playlistid" = %s AND "song_index" = %s;
@@ -472,23 +505,23 @@ def remove_from_playlist():
 	SET "song_index" = %s
 	WHERE "playlistid" = %s AND "song_index" = %s;
 	'''
-	
+
 	for x in range(int(curPlaylist[1])):
 		if x > int(index[0]):
-			cursor.execute(sqlUpdateSongIndex, (str(x-1), curPlaylist[0], str(x)))	
-	
+			cursor.execute(sqlUpdateSongIndex, (str(x-1), curPlaylist[0], str(x)))
+
 
 	print(songs[songNum][0], "has been removed from your playlist.")
-	
-	
-	
-		
-	
+
+
+
+
+
 def delete_playlist():
 	playlistName = ""
 	while len(playlistName) == 0:
 		playlistName = raw_input("Which playlist would you like to delete?").strip()
-	
+
 	sqlSearch = '''
 	SELECT "playlistname", "playlistid", "numsongs" 
 	FROM "Playlist"
@@ -497,7 +530,7 @@ def delete_playlist():
 	cursor = connection.cursor()
 	cursor.execute(sqlSearch, (playlistName, currentEmail))
 	connection.commit()
-	
+
 	result = cursor.fetchall()
 	if result != []:
 		print("WARNING!")
@@ -505,7 +538,7 @@ def delete_playlist():
 		answer = ''
 		while len(answer) == 0:
 			answer = (raw_input("Enter 1 for yes and 0 for no: ").strip())
-		
+
 		if answer == '1':
 			sqlDelete = '''
 			DELETE FROM "Playlist" 
@@ -519,7 +552,7 @@ def delete_playlist():
 			'''
 			cursor.execute(sqlDelete2, (result[0][1],))
 			connection.commit()
-			
+
 		else:
 			print("Play list has NOT been deleted")
 	else:
@@ -529,20 +562,20 @@ def create_playlist():
 	playlistName = ""
 	while len(playlistName) == 0:
 		playlistName = raw_input("What would you like to name your new playlist?").strip()
-	
+
 	sql = '''
 	INSERT INTO "Playlist"
 	(playlistid, playlistname, numsongs, duration, email)
 	VALUES (%s, %s,  %s, %s, %s);
 	'''
-	
+
 	playlistid = hash(currentEmail + playlistName)
-	
-	
+
+
 	cursor = connection.cursor()
 	cursor.execute(sql, (playlistid, playlistName, 0, 0, currentEmail))
 	connection.commit()
-	
+
 	print("Your playlist " + playlistName + " has been created!")
 
 def register_user():
@@ -558,8 +591,8 @@ def register_user():
 	usernames = cursor.fetchall()
 
 	isUsernameValid = False
-	
-	usr =""	
+
+	usr =""
 	while not isUsernameValid:
 		usr = str(raw_input("Enter your desired username: "))
 		usr = usr.strip()
@@ -573,8 +606,8 @@ def register_user():
 				print("That name is already taken, please try again!")
 				isUsernameValid = False
 				break
-		
-	
+
+
 
 	password = ""
 	#TODO make password more secure
@@ -584,10 +617,10 @@ def register_user():
 
 	firstName = ""
 	lastName = ""
-	
+
 	while len(firstName) == 0:
 		firstName = str(raw_input("Enter your first name: ")).strip()
-	
+
 	while len(lastName) == 0:
 		lastName = str(raw_input("Enter your last name: ")).strip()
 
@@ -597,7 +630,7 @@ def register_user():
 	emails = cursor.fetchall()
 
 	isEmailValid = False
-	
+
 	while not isEmailValid:
 		userEmail = raw_input("Enter your email: ").strip()
 		isEmailValid = True
@@ -610,8 +643,8 @@ def register_user():
 				isEmailValid = False
 				print("That email is already taken, be sure you don't already have an account!")
 				break
-		
-	
+
+
 	now = datetime.now()
 	creation_time = now.strftime("%Y/%m/%d")
 	registerQuery = '''
@@ -619,17 +652,17 @@ def register_user():
  	("email", "username", "fname", "lname", "cdate", "ladate", "password") 
 	VALUES (%s, %s, %s, %s, %s, %s, %s);
 	'''
-	
+
 	cursor.execute(registerQuery, (userEmail, usr, firstName, lastName, creation_time, creation_time, password))
 	connection.commit()
-	check = 'SELECT "username" FROM "User" where "username"=%s;' 
+	check = 'SELECT "username" FROM "User" where "username"=%s;'
 	cursor.execute(check, (usr,))
 	result = cursor.fetchall()
-	
+
 	i = 0
 	for users in result:
 		i+= 1
-	
+
 	if i == 0:
 		print("There might have been an issue registering you, please try again or query the User table.")
 	elif i == 1:
@@ -906,7 +939,7 @@ def song_search():
 	print("What kind of search would you like?")
 	print(" 0. Exact (Song = search)")
 	print(" 1. Close (Song inclused search)")
-	
+
 	while True:
 		try:
                 	choice = int(input("Enter option #: "))
@@ -920,7 +953,7 @@ def song_search():
                     print("Please choose an option...")
 
 	search = raw_input("Enter your search parameter: ").strip()
-	
+
 
 	if choice:
 		sql = ''' 
@@ -935,7 +968,7 @@ def song_search():
 		WHERE LOWER("Song"."name") LIKE LOWER(%s)
 		ORDER BY "Song"."name";
 		'''
-		search = "%" + search + "%"	
+		search = "%" + search + "%"
 	else:
 		sql = ''' 
 		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
@@ -952,8 +985,8 @@ def song_search():
 	cursor = connection.cursor()
 	cursor.execute(sql, (search,))
 	result = cursor.fetchall()
-	
-	
+
+
 	if result != []:
 		for entry in result:
 			print "Song: " + entry[0]
@@ -962,7 +995,7 @@ def song_search():
 			print "Genre: " + entry[3]
 			print "Length: " + str(entry[4]) + " Seconds"
 			print "Listen Count: " + str(entry[5]) + " Play(s)"
-			print '\n'	
+			print '\n'
 	else:
 		print "Sorry but there were no records that matched your search"
 
@@ -972,7 +1005,7 @@ def artist_search():
 	print("What kind of search would you like?")
 	print(" 0. Exact (Artist = search)")
 	print(" 1. Close (Artist inclused search)")
-	
+
 	while True:
 		try:
                 	choice = int(input("Enter option #: "))
@@ -986,7 +1019,7 @@ def artist_search():
                     print("Please choose an option...")
 
 	search = raw_input("Enter your search parameter: ").strip()
-	
+
 
 	if choice:
 		sql = ''' 
@@ -1001,7 +1034,7 @@ def artist_search():
 		WHERE LOWER("Artist"."aname") LIKE LOWER(%s)
 		ORDER BY "Artist"."aname";
 		'''
-		search = "%" + search + "%"	
+		search = "%" + search + "%"
 	else:
 		sql = ''' 
 		SELECT "Song"."name", "Album"."aname", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
@@ -1018,8 +1051,8 @@ def artist_search():
 	cursor = connection.cursor()
 	cursor.execute(sql, (search,))
 	result = cursor.fetchall()
-	
-	
+
+
 	if result != []:
 		for entry in result:
 			print "Song: " + entry[0]
@@ -1028,19 +1061,19 @@ def artist_search():
 			print "Genre: " + entry[3]
 			print "Length: " + str(entry[4]) + " Seconds"
 			print "Listen Count: " + str(entry[5]) + " Play(s)"
-			print '\n'	
+			print '\n'
 	else:
 		print "Sorry but there were no records that matched your search"
 
 	cursor.close()
-	
-	
-	
+
+
+
 def album_search():
 	print("What kind of search would you like?")
 	print(" 0. Exact (Song = search)")
 	print(" 1. Close (Song inclused search)")
-	
+
 	while True:
 		try:
                 	choice = int(input("Enter option #: "))
@@ -1054,7 +1087,7 @@ def album_search():
                     print("Please choose an option...")
 
 	search = raw_input("Enter your search parameter: ").strip()
-	
+
 
 	if choice:
 		sql = ''' 
@@ -1069,7 +1102,7 @@ def album_search():
 		WHERE LOWER("Album"."name") LIKE LOWER(%s)
 		ORDER BY "Album"."name";
 		'''
-		search = "%" + search + "%"	
+		search = "%" + search + "%"
 	else:
 		sql = ''' 
 		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
@@ -1086,8 +1119,8 @@ def album_search():
 	cursor = connection.cursor()
 	cursor.execute(sql, (search,))
 	result = cursor.fetchall()
-	
-	
+
+
 	if result != []:
 		for entry in result:
 			print "Song: " + entry[0]
@@ -1096,18 +1129,18 @@ def album_search():
 			print "Genre: " + entry[3]
 			print "Length: " + str(entry[4]) + " Seconds"
 			print "Listen Count: " + str(entry[5]) + " Play(s)"
-			print '\n'	
+			print '\n'
 	else:
 		print "Sorry but there were no records that matched your search"
 
 	cursor.close()
-	
+
 
 def genre_search():
 	print("What kind of search would you like?")
 	print(" 0. Exact (Song = search)")
 	print(" 1. Close (Song inclused search)")
-	
+
 	while True:
 		try:
                 	choice = int(input("Enter option #: "))
@@ -1121,7 +1154,7 @@ def genre_search():
                     print("Please choose an option...")
 
 	search = raw_input("Enter your search parameter: ").strip()
-	
+
 
 	if choice:
 		sql = ''' 
@@ -1136,7 +1169,7 @@ def genre_search():
 		WHERE LOWER("Genre"."name") LIKE LOWER(%s)
 		ORDER BY "Genre"."name";
 		'''
-		search = "%" + search + "%"	
+		search = "%" + search + "%"
 	else:
 		sql = ''' 
 		SELECT "Song"."name", "Album"."name", "Artist"."aname", "Genre"."name", "Song"."length", "Song"."listens"
@@ -1153,8 +1186,8 @@ def genre_search():
 	cursor = connection.cursor()
 	cursor.execute(sql, (search,))
 	result = cursor.fetchall()
-	
-	
+
+
 	if result != []:
 		for entry in result:
 			print "Song: " + entry[0]
@@ -1163,7 +1196,7 @@ def genre_search():
 			print "Genre: " + entry[3]
 			print "Length: " + str(entry[4]) + " Seconds"
 			print "Listen Count: " + str(entry[5]) + " Play(s)"
-			print '\n'	
+			print '\n'
 	else:
 		print "Sorry but there were no records that matched your search"
 
