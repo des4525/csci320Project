@@ -278,7 +278,7 @@ def play_playlist():
 
 def view_playlists():
 	sql = '''
-	SELECT "playlistname", "email"
+	SELECT "playlistname", "email", "numsongs", "duration"
 	FROM "Playlist"
 	WHERE "email" = %s;
 	'''
@@ -290,16 +290,18 @@ def view_playlists():
 	for entry in result:
 		print("Playlist: " + entry[0])
 		print("Created by: " + entry[1])
+		print("It contains " + str(entry[2]) + " song(s).")
+		print("It is " + str(entry[3]) + " seconds long.\n")
 
 def edit_playlist_name():
 	playlistName = ""
 	while len(playlistName) == 0:
-		playlistName = raw_input("Which playlist would you like to alter?").strip()
+		playlistName = raw_input("Which playlist would you like to alter? ").strip()
 	
 	
 	newPlaylistName = ""
 	while len(newPlaylistName) == 0:
-		newPlaylistName = raw_input("What would you like the new name to be?").strip()
+		newPlaylistName = raw_input("What would you like the new name to be? ").strip()
 
 	sql = '''
 	UPDATE "Playlist"
@@ -316,15 +318,15 @@ def edit_playlist_name():
 def add_to_playlist():
 	playlistName = ""
 	while len(playlistName) == 0:
-		playlistName = raw_input("Which playlist would you like to add a song to?").strip()
+		playlistName = raw_input("Which playlist would you like to add a song to? ").strip()
 
 	songName = ""
 	while len(songName) == 0:
-		songName = raw_input("Which song would you like to add?").strip()
+		songName = raw_input("Which song would you like to add? ").strip()
 	
 	artistName = ""	
 	while len(artistName) == 0:
-		artistName = raw_input("Who is the artist who released that song?").strip()
+		artistName = raw_input("Who is the artist who released that song? ").strip()
 	
 	sql = '''
 	SELECT "Song"."name", "Artist"."aname", "Song"."songid", "Song"."length" 
@@ -390,7 +392,7 @@ def remove_from_playlist():
 
 	playlistName = ""
 	while len(playlistName) == 0:
-		playlistName = raw_input("Which playlist would you like to remove a song from?").strip()
+		playlistName = raw_input("Which playlist would you like to remove a song from? ").strip()
 
 	sqlGetPlaylist = '''
 	SELECT "playlistid", "numsongs", "duration"
@@ -414,7 +416,7 @@ def remove_from_playlist():
 	INNER JOIN "ArtistReleases" ON "ArtistReleases"."songid" = "Song"."songid")
 	INNER JOIN "Artist" ON "Artist"."aname" = "ArtistReleases"."aname")
 	WHERE "Playlist"."playlistid" = %s AND "Playlist"."email" = %s
-	ORDER BY "Song"."name";
+	ORDER BY "PlaylistContains"."song_index";
 	'''
 	cursor.execute(sqlGetSongs, (curPlaylist[0], currentEmail))
 	connection.commit()
@@ -433,9 +435,8 @@ def remove_from_playlist():
 	songNum = 0
 	while songNum == 0:
 		
-		songNum = int(raw_input("Which song NUMBER would you like to remove?").strip())
+		songNum = int(raw_input("Which song NUMBER would you like to remove? ").strip())
 		
-	
 	
 	sqlUpdateSong = '''
 	UPDATE "Playlist"
@@ -445,25 +446,12 @@ def remove_from_playlist():
 	cursor.execute(sqlUpdateSong, (str(int(curPlaylist[1]) - 1), (curPlaylist[2] - songs[songNum-1][3]), curPlaylist[0], currentEmail))
 	connection.commit()
 		
-	sqlGetPlaylistContainsInfo = '''
-	SELECT "song_index"
-	FROM "PlaylistContains"
-	WHERE "playlistid" = %s AND "songid" = %s;
-	'''
-	cursor.execute(sqlGetPlaylistContainsInfo, (curPlaylist[0], songs[songNum-1][2]))
-	connection.commit()
-	indexResults = cursor.fetchall()
-	if indexResults != []:
-		index = indexResults[0]
-	else:
-		print("Error: Could not get the song index, this shouldn't happen theoretically so please contact someone")
-		return
 	
 	sqlRemoveSong = '''
 	DELETE FROM "PlaylistContains"
 	WHERE "playlistid" = %s AND "song_index" = %s;
 	'''
-	cursor.execute(sqlRemoveSong, (curPlaylist[0], index[0] ))
+	cursor.execute(sqlRemoveSong, (curPlaylist[0], songNum ))
 	connection.commit()
 
 
@@ -474,11 +462,11 @@ def remove_from_playlist():
 	'''
 	
 	for x in range(int(curPlaylist[1])):
-		if x > int(index[0]):
-			cursor.execute(sqlUpdateSongIndex, (str(x-1), curPlaylist[0], str(x)))	
+		if x + 1 > int(songNum):
+			cursor.execute(sqlUpdateSongIndex, (str(x), curPlaylist[0], str(x + 1)))	
 	
 
-	print(songs[songNum][0], "has been removed from your playlist.")
+	print(songs[songNum-1][0] + " has been removed from your playlist.")
 	
 	
 	
