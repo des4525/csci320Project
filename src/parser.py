@@ -10,8 +10,36 @@ import psycopg2
 possible_genres = ['berlin minimal techno', 'japanese vtuber', 'meme rap', 'bubblegrunge', 'canadian contemporary r&b']
 
 
-def get_release_date(song_id):
+def randomize_listens():
+    songs_query = '''
+    SELECT "songid"
+    FROM "Song";
+    '''
 
+    listens_thing = '''
+    UPDATE "Song"
+    SET "listens" = %s
+    WHERE "songid" = %s;
+    '''
+
+    cursor = connection.cursor()
+    cursor.execute(songs_query)
+    songs = cursor.fetchall()
+
+    for song in songs:
+        listens = random.randint(100, 10000)
+        try:
+            cursor.execute(listens_thing, (listens, song[0]))
+            print("Set song: {} listens to {}.".format(song[0], listens))
+            connection.commit()
+        except Exception as e:
+            print e.message
+            connection.rollback()
+
+    cursor.close()
+
+
+def get_release_date(song_id):
     date_query = '''
         SELECT "rdate" 
         FROM "Song"
@@ -24,6 +52,7 @@ def get_release_date(song_id):
     cursor.close()
     print rdate
     return rdate
+
 
 def get_artists():
     artist_query = '''
@@ -194,8 +223,8 @@ def insert_song(row):
     except:
         connection.rollback()
 
-
     cursor.close()
+
 
 def main():
     data_ACOUSTICNESS = 0
@@ -305,11 +334,12 @@ def main():
     #     row = next(baseData)
     #     insert_song(row)
 
-    artists = get_artists()
-    for artist in artists:
-        print artist[0]
-        create_albums(artist[0])
+    # artists = get_artists()
+    # for artist in artists:
+    #     print artist[0]
+    #     create_albums(artist[0])
 
+    randomize_listens()
 
     # for row in baseData:
     #     things = []
