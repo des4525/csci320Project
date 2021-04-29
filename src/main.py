@@ -375,10 +375,10 @@ def add_to_playlist():
 	
 	sqlUpdatePlaylist = '''
 	UPDATE "Playlist"
-	SET "numsongs" = "numsongs" + 1, "duration" = %s
+	SET "numsongs" = %s, "duration" = %s
 	WHERE "playlistid" = %s;
 	'''
-	cursor.execute(sqlUpdatePlaylist, (str(int(curPlaylist[1]) + 1),curPlaylist[2], (str(int(song[3]) + int(curPlaylist[0])))))
+	cursor.execute(sqlUpdatePlaylist, (str(int(curPlaylist[1]) + 1), (str(int(song[3]) + int(curPlaylist[0]))), curPlaylist[0] ))
 	connection.commit()
 	
 	print("Your song has been added.")
@@ -438,18 +438,45 @@ def remove_from_playlist():
 	
 	sqlUpdateSong = '''
 	UPDATE "Playlist"
-	SET "numsongs" = "numsongs" - 1, "duration" = %s
+	SET "numsongs" = %s, "duration" = %s
 	WHERE "playlistid" = %s AND "email" = %s;
 	'''
-	cursor.execute(sqlUpdateSong, ((curPlaylist[2] - songs[songNum-1][3]), curPlaylist[0], currentEmail))
+	cursor.execute(sqlUpdateSong, (str(int(curPlaylist[1]) - 1), (curPlaylist[2] - songs[songNum-1][3]), curPlaylist[0], currentEmail))
 	connection.commit()
+		
+	sqlGetPlaylistContainsInfo = '''
+	SELECT "song_index"
+	FROM "PlaylistContains"
+	WHERE "playlistid" = %s AND "songid" = %s;
+	'''
+	cursor.execute(sqlGetPlaylistContainsInfo, (curPlaylist[0], songs[songNum-1][2]))
+	connection.commit()
+	indexResults = cursor.fetchall()
+	if indexResults != []:
+		index = indexResults[0]
+	else:
+		print("Error: Could not get the song index, this shouldn't happen theoretically so please contact someone")
+		return
 	
 	sqlRemoveSong = '''
 	DELETE FROM "PlaylistContains"
-	WHERE "songid" = %s AND "playlistid" = %s AND "email" = %s;
+	WHERE "playlistid" = %s AND "song_index" = %s;
 	'''
-	cursor.execute(sqlRemoveSong, (songs[songNum-1][2], curPlaylist[0], currentEmail))
+	cursor.execute(sqlRemoveSong, (curPlaylist[0], index ))
 	connection.commit()
+
+
+	sqlUpdateSongIndex = '''
+	UPDATE "PlaylistContains"
+	SET "song_index" = %s
+	WHERE "playlistid" = %s AND "song_index" = %s;
+	'''
+	
+	for x in range(int(curPlaylist[1])):
+		if x > int(index):
+			cursor.execute(sqlUpdateSongIndex, (str(x-1), curPlaylist[0], str(x)))	
+	
+
 	print(songs[songNum][0], "has been removed from your playlist.")
 	
 	
